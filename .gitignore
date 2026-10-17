@@ -2,6 +2,7 @@
 node_modules/
 dist/
 coverage/
+.vitest/
 *.tsbuildinfo
 
 # user data: never commit databases, images or uploads
