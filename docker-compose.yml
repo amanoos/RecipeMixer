@@ -13,6 +13,8 @@ services:
       # port mapping above. To reach the app from anywhere else, do not change that mapping:
       # follow docs/DEPLOYMENT.md (a password, HTTPS in front, and deploy/docker-compose.caddy.yml).
       ALLOW_INSECURE_NO_AUTH: "true"
+      # Optional TheMealDB search (not open source; read docs/DATA-SOURCES.md first). Off by default.
+      # MEALDB_ENABLED: "true"
     volumes:
       - recipemixer-data:/data
     read_only: true

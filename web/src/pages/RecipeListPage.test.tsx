@@ -87,3 +87,51 @@ describe('RecipeListPage', () => {
     expect(container.querySelector('img[src="x"]')).toBeNull();
   });
 });
+
+describe('RecipeListPage starter recipes', () => {
+  it('loads the starter recipes from the empty state and then shows them', async () => {
+    const user = userEvent.setup();
+    let loaded = false;
+    const mock = stubFetch({
+      'GET /api/recipes?limit=24&offset=0': () =>
+        apiResponse(loaded ? { items: [summary({ id: 1, title: 'Simple Tomato Soup' })], total: 1 } : { items: [], total: 0 }),
+      'GET /api/cuisines': () => apiResponse({ items: [] }),
+      'POST /api/starter-recipes': () => {
+        loaded = true;
+        return apiResponse({ added: 40, skipped: 0 });
+      },
+    });
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Load starter recipes' }));
+
+    expect(await screen.findByRole('link', { name: /Simple Tomato Soup/ })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'No recipes yet' })).not.toBeInTheDocument();
+    expect(mock.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === 'POST')).toHaveLength(1);
+  });
+
+  it('says so when the starter recipes could not be loaded, and stays on the empty state', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/recipes?limit=24&offset=0': () => apiResponse({ items: [], total: 0 }),
+      'GET /api/cuisines': () => apiResponse({ items: [] }),
+      'POST /api/starter-recipes': () => apiResponse({ error: 'Internal Server Error' }, 500),
+    });
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Load starter recipes' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load the starter recipes');
+    expect(screen.getByRole('heading', { name: 'No recipes yet' })).toBeInTheDocument();
+  });
+
+  it('does not offer the button once the library has recipes', async () => {
+    stubFetch({
+      'GET /api/recipes?limit=24&offset=0': () => apiResponse({ items: [summary({ id: 1, title: 'Soup' })], total: 1 }),
+      'GET /api/cuisines': () => apiResponse({ items: [] }),
+    });
+    renderPage();
+    expect(await screen.findByRole('link', { name: /Soup/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Load starter recipes' })).not.toBeInTheDocument();
+  });
+});

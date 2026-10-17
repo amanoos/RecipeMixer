@@ -48,18 +48,18 @@ describe('who am I', () => {
     await start();
     const res = await get('/api/session');
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ authRequired: true, authenticated: false });
+    expect(res.json()).toEqual({ authRequired: true, authenticated: false, features: { mealdb: false } });
   });
 
   it('says this caller is logged in after login', async () => {
     await start();
     const cookie = await loggedIn();
-    expect((await get('/api/session', cookie)).json()).toEqual({ authRequired: true, authenticated: true });
+    expect((await get('/api/session', cookie)).json()).toEqual({ authRequired: true, authenticated: true, features: { mealdb: false } });
   });
 
   it('says no password is needed when none is set', async () => {
     await start({ appPassword: null });
-    expect((await get('/api/session')).json()).toEqual({ authRequired: false, authenticated: true });
+    expect((await get('/api/session')).json()).toEqual({ authRequired: false, authenticated: true, features: { mealdb: false } });
     expect((await login()).statusCode).toBe(204);
   });
 });

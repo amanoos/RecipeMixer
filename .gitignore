@@ -5,8 +5,9 @@ coverage/
 .vitest/
 *.tsbuildinfo
 
-# user data: never commit databases, images or uploads
-data/
+# user data: never commit databases, images or uploads (anchored, so the bundled server/src/data is not ignored)
+/data/
+/server/data/
 *.db
 *.db-wal
 *.db-shm

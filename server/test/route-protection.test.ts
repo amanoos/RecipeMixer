@@ -25,6 +25,9 @@ const PROTECTED = [
   'GET /api/match',
   'GET /api/ingredients/suggest',
   'POST /api/import/preview',
+  'POST /api/starter-recipes',
+  'GET /api/mealdb/search',
+  'GET /api/mealdb/meals/:id',
   'GET /api/images/:filename',
 ];
 
@@ -44,7 +47,7 @@ async function start(extraRoutes?: (instance: FastifyInstance) => void) {
   fs.writeFileSync(path.join(webDist, 'index.html'), '<!doctype html><title>RecipeMixer</title>');
   fs.mkdirSync(path.join(webDist, 'assets'));
   fs.writeFileSync(path.join(webDist, 'assets', 'app.js'), 'console.log(1);');
-  app = await makeApp({ appPassword: PASSWORD, webDist }, undefined, undefined, { onRoute: (route) => collected.push(route) });
+  app = await makeApp({ appPassword: PASSWORD, webDist, mealdbEnabled: true }, undefined, undefined, { onRoute: (route) => collected.push(route) });
   extraRoutes?.(app);
   await app.ready();
   return app;

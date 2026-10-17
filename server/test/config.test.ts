@@ -60,3 +60,32 @@ describe('URL import switch', () => {
     expect(() => loadConfig({ URL_IMPORT_ENABLED: 'maybe' })).toThrow(/URL_IMPORT_ENABLED/);
   });
 });
+
+describe('TheMealDB settings', () => {
+  it('is off by default and uses the development key', () => {
+    const config = loadConfig({});
+    expect(config.mealdbEnabled).toBe(false);
+    expect(config.mealdbApiKey).toBe('1');
+  });
+
+  it('can be turned on with a key of plain characters', () => {
+    const config = loadConfig({ MEALDB_ENABLED: 'true', MEALDB_API_KEY: ' abc_DEF-123 ' });
+    expect(config.mealdbEnabled).toBe(true);
+    expect(config.mealdbApiKey).toBe('abc_DEF-123');
+  });
+
+  it.each(['a/b', '../x', 'a b', 'key?x=1', 'a'.repeat(65), '', '%2e%2e'])('refuses the key %j without repeating it', (key) => {
+    let message = '';
+    try {
+      loadConfig({ MEALDB_API_KEY: key });
+    } catch (err) {
+      message = (err as Error).message;
+    }
+    expect(message).toMatch(/MEALDB_API_KEY/);
+    if (key) expect(message).not.toContain(key);
+  });
+
+  it('rejects other values for the switch', () => {
+    expect(() => loadConfig({ MEALDB_ENABLED: 'yes' })).toThrow(/MEALDB_ENABLED/);
+  });
+});

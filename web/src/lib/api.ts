@@ -1,6 +1,7 @@
 import type {
   Cuisine,
   ImportPreview,
+  MealSearchResult,
   IngredientSuggestion,
   MatchResult,
   RecipeDetail,
@@ -156,10 +157,29 @@ export function importImageFromUrl(id: number, url: string): Promise<RecipeDetai
   return request<RecipeDetail>(`/api/recipes/${id}/image/from-url`, jsonRequest('POST', { url }));
 }
 
+/** Adds the bundled starter recipes that are not in the library yet. */
+export function loadStarterRecipes(): Promise<{ added: number; skipped: number }> {
+  return request<{ added: number; skipped: number }>('/api/starter-recipes', { method: 'POST' });
+}
+
+/** Searches TheMealDB by name (only when the server has that feature on). */
+export async function searchMealDb(query: string, signal?: AbortSignal): Promise<MealSearchResult[]> {
+  const params = new URLSearchParams({ q: query });
+  const { items } = await request<{ items: MealSearchResult[] }>(`/api/mealdb/search?${params.toString()}`, { signal });
+  return items;
+}
+
+/** Reads one TheMealDB recipe for review. Nothing is saved. */
+export function previewMealDb(id: string, signal?: AbortSignal): Promise<ImportPreview> {
+  return request<ImportPreview>(`/api/mealdb/meals/${encodeURIComponent(id)}`, { signal });
+}
+
 export interface SessionStatus {
   /** Whether the server has a password set. */
   authRequired: boolean;
   authenticated: boolean;
+  /** Optional features this server has switched on. Absent on older servers. */
+  features?: { mealdb: boolean };
 }
 
 export function getSession(signal?: AbortSignal): Promise<SessionStatus> {

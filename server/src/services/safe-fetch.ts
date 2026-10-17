@@ -22,6 +22,7 @@ export const MAX_PAGE_BYTES = 2 * 1024 * 1024;
 export const MAX_REDIRECTS = 5;
 export const FETCH_TIMEOUT_MS = 10_000;
 export const MAX_URL_LENGTH = 2048;
+export const MAX_JSON_BYTES = 1024 * 1024;
 const MAX_ADDRESSES_TRIED = 4;
 export const USER_AGENT = 'RecipeMixer/0.1 (+https://github.com/amanoos/RecipeMixer)';
 
@@ -63,6 +64,8 @@ export interface FetchedBody {
 export interface SafeFetcher {
   fetchPage(url: string): Promise<FetchedBody>;
   fetchImage(url: string): Promise<FetchedBody>;
+  /** Fetches a JSON document from a web API and returns it parsed. Any failure looks like any other fetch failure. */
+  fetchJson(url: string): Promise<unknown>;
 }
 
 export interface SafeFetcherOptions {
@@ -229,6 +232,12 @@ interface GetOptions {
   notAcceptable?: string;
 }
 
+/** True for application/json and application/*+json, judged by the media type alone, not by its parameters. */
+export function isJsonType(contentType: string): boolean {
+  const mediaType = (contentType.split(';')[0] ?? '').trim().toLowerCase();
+  return mediaType === 'application/json' || /^application\/[a-z0-9.-]+\+json$/.test(mediaType);
+}
+
 export function createSafeFetcher(options: SafeFetcherOptions = {}): SafeFetcher {
   const deps = options.deps ?? networkDeps;
   const timeoutMs = options.timeoutMs ?? FETCH_TIMEOUT_MS;
@@ -351,6 +360,20 @@ export function createSafeFetcher(options: SafeFetcherOptions = {}): SafeFetcher
         contentTypeOk: (type) => type.startsWith('text/html') || type.startsWith('application/xhtml+xml'),
         notAcceptable: 'That address is not a web page',
       }),
+
+    fetchJson: async (raw) => {
+      const fetched = await guardedGet(parseTargetUrl(raw), {
+        maxBytes: MAX_JSON_BYTES,
+        accept: 'application/json',
+        contentTypeOk: isJsonType,
+        notAcceptable: FETCH_FAILED,
+      });
+      try {
+        return JSON.parse(fetched.body.toString('utf8')) as unknown;
+      } catch {
+        return refuse('response was not valid JSON');
+      }
+    },
 
     // The content type is not trusted here: processImage decides from the bytes.
     fetchImage: async (raw) =>

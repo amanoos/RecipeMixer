@@ -11,10 +11,13 @@ import { createAuthContext, registerAuth } from './plugins/auth.js';
 import { registerSecurity } from './plugins/security.js';
 import { healthRoutes } from './routes/health.js';
 import { imageRoutes } from './routes/images.js';
-import { importRoutes } from './routes/import.js';
+import { importRoutes, MAX_CONCURRENT_IMPORTS } from './routes/import.js';
 import { matchRoutes } from './routes/match.js';
+import { mealdbRoutes } from './routes/mealdb.js';
 import { recipeRoutes } from './routes/recipes.js';
 import { sessionRoutes } from './routes/session.js';
+import { starterRoutes } from './routes/starter.js';
+import { createLimiter } from './services/concurrency.js';
 import { createImageStore, MAX_IMAGE_BYTES } from './services/images.js';
 import { createSafeFetcher, type SafeFetcher } from './services/safe-fetch.js';
 
@@ -86,17 +89,23 @@ export async function buildApp({ config, db, rateLimitMax = 300, fetcher, clock,
 
   const images = createImageStore(config.imagesDir);
   await app.register(healthRoutes, { db, auth });
-  await app.register(sessionRoutes, { auth });
+  await app.register(sessionRoutes, { auth, features: { mealdb: config.mealdbEnabled } });
   await app.register(recipeRoutes, { db, images });
   await app.register(imageRoutes, { images });
   await app.register(matchRoutes, { db });
-  await app.register(importRoutes, {
+  // Why a target was refused goes to the log only; clients just see a generic message.
+  const safeFetcher =
+    fetcher ?? createSafeFetcher({ onReject: (reason) => app.log.warn({ reason }, 'outgoing request refused') });
+  // Page imports and TheMealDB lookups share one cap on simultaneous fetches from the internet.
+  const limiter = createLimiter(MAX_CONCURRENT_IMPORTS);
+  await app.register(starterRoutes, { db });
+  await app.register(importRoutes, { db, images, enabled: config.urlImportEnabled, fetcher: safeFetcher, limiter });
+  await app.register(mealdbRoutes, {
     db,
-    images,
-    enabled: config.urlImportEnabled,
-    // Why a target was refused goes to the log only; clients just see a generic message.
-    fetcher:
-      fetcher ?? createSafeFetcher({ onReject: (reason) => app.log.warn({ reason }, 'URL import target refused') }),
+    fetcher: safeFetcher,
+    limiter,
+    enabled: config.mealdbEnabled,
+    apiKey: config.mealdbApiKey,
   });
 
   // The data directory is deliberately never served; images go through the validated /api/images route.

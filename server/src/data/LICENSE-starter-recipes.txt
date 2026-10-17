@@ -1,0 +1,10 @@
+starter-recipes.json
+
+The recipes in this file were written for the RecipeMixer project. The author
+dedicates them to the public domain under CC0 1.0 Universal: to the extent
+possible under law, the author has waived all copyright and related rights.
+
+You may copy, modify, distribute and use them for any purpose, including
+commercially, without asking permission and without attribution.
+
+Full text: https://creativecommons.org/publicdomain/zero/1.0/legalcode

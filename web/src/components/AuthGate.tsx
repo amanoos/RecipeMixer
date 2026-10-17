@@ -17,6 +17,7 @@ type Phase = 'checking' | 'ready' | 'login' | 'error';
 export function AuthGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('checking');
   const [authRequired, setAuthRequired] = useState(false);
+  const [mealdb, setMealdb] = useState(false);
   const [keepAppBehindLogin, setKeepAppBehindLogin] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -27,6 +28,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     getSession(controller.signal)
       .then((status) => {
         setAuthRequired(status.authRequired);
+        setMealdb(status.features?.mealdb === true);
         setPhase(!status.authRequired || status.authenticated ? 'ready' : 'login');
       })
       .catch(() => {
@@ -52,7 +54,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
     setPhase('login');
   }, []);
 
-  const value = useMemo<AuthState>(() => ({ authRequired, logout }), [authRequired, logout]);
+  const value = useMemo<AuthState>(
+    () => ({ authRequired, features: { mealdb }, logout }),
+    [authRequired, mealdb, logout],
+  );
 
   if (phase === 'checking') {
     // Nothing visible until the server has answered, so neither the login form nor the app flashes first.

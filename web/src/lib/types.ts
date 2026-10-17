@@ -72,6 +72,13 @@ export interface RecipeDraft {
   steps: string[];
 }
 
+export interface MealSearchResult {
+  id: string;
+  title: string;
+  cuisine: string | null;
+  category: string | null;
+}
+
 export interface ImportPreview {
   draft: RecipeDraft;
   /** The page's photo, downloaded by the server only after the recipe is saved. */

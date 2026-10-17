@@ -1,8 +1,8 @@
-// Copies the SQL migration files next to the compiled JavaScript (tsc does not copy them).
+// Copies the files tsc does not (SQL migrations and bundled data) next to the compiled JavaScript.
 import { cpSync } from 'node:fs';
 
-cpSync(
-  new URL('../src/db/migrations', import.meta.url),
-  new URL('../dist/db/migrations', import.meta.url),
-  { recursive: true },
-);
+for (const folder of ['db/migrations', 'data']) {
+  cpSync(new URL(`../src/${folder}`, import.meta.url), new URL(`../dist/${folder}`, import.meta.url), {
+    recursive: true,
+  });
+}

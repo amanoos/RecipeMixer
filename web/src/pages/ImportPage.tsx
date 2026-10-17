@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { MealDbSearch } from '@/components/MealDbSearch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, previewImport } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import type { ImportPreview } from '@/lib/types';
 import { useDocumentTitle } from '@/lib/use-document-title';
 
@@ -18,6 +20,7 @@ function messageFor(err: unknown): string {
 export function ImportPage() {
   useDocumentTitle('Import a recipe');
   const navigate = useNavigate();
+  const { features } = useAuth();
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +116,8 @@ export function ImportPage() {
           </Button>
         </div>
       )}
+
+      {features.mealdb && <MealDbSearch onReview={openForm} />}
 
       <p className="text-xs text-muted-foreground">
         Works with pages that publish standard recipe data, which most recipe sites do. The server fetches the page for

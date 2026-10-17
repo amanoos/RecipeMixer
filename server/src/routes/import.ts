@@ -1,7 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { Db } from '../db/connection.js';
 import { findRecipeIdBySourceUrl } from '../db/recipes.js';
-import { tooManyRequests, unprocessable } from '../errors.js';
+import { unprocessable } from '../errors.js';
+import { createLimiter, type Limiter } from '../services/concurrency.js';
 import { importUrlSchema, type ImportPreview } from '../schemas/import.js';
 import { parseOrThrow } from '../schemas/recipe.js';
 import { processImage, type ImageStore } from '../services/images.js';
@@ -15,28 +16,22 @@ export interface ImportRouteDeps {
   images: ImageStore;
   fetcher: SafeFetcher;
   enabled: boolean;
+  /** Shared with the other features that fetch from the internet, so they count against one cap. */
+  limiter?: Limiter;
 }
 
-const MAX_CONCURRENT_IMPORTS = 2;
+export const MAX_CONCURRENT_IMPORTS = 2;
 // Stricter than the global limit: each call makes the server fetch something from the internet.
-const IMPORT_RATE_LIMIT = { max: 10, timeWindow: '1 minute' };
+export const IMPORT_RATE_LIMIT = { max: 10, timeWindow: '1 minute' };
 
-export const importRoutes: FastifyPluginAsync<ImportRouteDeps> = async (app, { db, images, fetcher, enabled }) => {
+export const importRoutes: FastifyPluginAsync<ImportRouteDeps> = async (
+  app,
+  { db, images, fetcher, enabled, limiter },
+) => {
   // When the feature is off the routes do not exist, so both addresses answer 404.
   if (!enabled) return;
 
-  let running = 0;
-  async function limited<T>(work: () => Promise<T>): Promise<T> {
-    if (running >= MAX_CONCURRENT_IMPORTS) {
-      throw tooManyRequests('Another import is already running. Try again in a moment.');
-    }
-    running += 1;
-    try {
-      return await work();
-    } finally {
-      running -= 1;
-    }
-  }
+  const limited = limiter ?? createLimiter(MAX_CONCURRENT_IMPORTS);
 
   // Fetches and reads a page. Nothing is saved and the photo is not downloaded yet.
   app.post('/api/import/preview', { config: { rateLimit: IMPORT_RATE_LIMIT } }, async (req): Promise<ImportPreview> => {
