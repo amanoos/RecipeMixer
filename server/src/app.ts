@@ -8,6 +8,7 @@ import type { Db } from './db/connection.js';
 import { registerSecurity } from './plugins/security.js';
 import { healthRoutes } from './routes/health.js';
 import { imageRoutes } from './routes/images.js';
+import { matchRoutes } from './routes/match.js';
 import { recipeRoutes } from './routes/recipes.js';
 import { createImageStore, MAX_IMAGE_BYTES } from './services/images.js';
 
@@ -53,6 +54,7 @@ export async function buildApp({ config, db, rateLimitMax = 300 }: AppDeps): Pro
   await app.register(healthRoutes, { db });
   await app.register(recipeRoutes, { db, images });
   await app.register(imageRoutes, { images });
+  await app.register(matchRoutes, { db });
 
   // The data directory is deliberately never served; images go through the validated /api/images route.
   const hasWebBuild = fs.existsSync(path.join(config.webDist, 'index.html'));

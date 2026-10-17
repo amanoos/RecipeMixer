@@ -20,14 +20,14 @@ afterEach(() => {
 describe('migrate', () => {
   it('applies all migrations and reports the latest version', () => {
     db = openMemoryDatabase();
-    expect(migrate(db)).toBe(2);
+    expect(migrate(db)).toBe(3);
   });
 
   it('is idempotent', () => {
     freshDb();
-    expect(migrate(db)).toBe(2);
-    expect(getSchemaVersion(db)).toBe(2);
-    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 2 });
+    expect(migrate(db)).toBe(3);
+    expect(getSchemaVersion(db)).toBe(3);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 3 });
   });
 
   it('applies new migrations in order and skips applied ones', () => {
@@ -108,6 +108,20 @@ describe('base schema', () => {
       }[]
     ).map((row) => row.name);
     expect(names).toEqual(expect.arrayContaining(['idx_recipe_created', 'idx_recipe_image_path']));
+  });
+
+  it('creates the ingredient word index and removes words with their ingredient', () => {
+    freshDb();
+    const { lastInsertRowid: recipeId } = db.prepare("INSERT INTO recipe (title) VALUES ('Soup')").run();
+    const { lastInsertRowid: ingredientId } = db
+      .prepare("INSERT INTO recipe_ingredient (recipe_id, position, raw_text) VALUES (?, 0, '1 onion')")
+      .run(recipeId);
+    db.prepare("INSERT INTO recipe_ingredient_word (ingredient_id, word) VALUES (?, 'onion')").run(ingredientId);
+    expect(db.prepare('SELECT normalizer_version AS v FROM recipe_ingredient').get()).toEqual({ v: 0 });
+    expect(db.prepare('SELECT COUNT(*) AS n FROM recipe_ingredient_word').get()).toEqual({ n: 1 });
+
+    db.prepare('DELETE FROM recipe WHERE id = ?').run(recipeId);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM recipe_ingredient_word').get()).toEqual({ n: 0 });
   });
 
   it('requires a title', () => {

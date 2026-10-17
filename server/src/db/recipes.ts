@@ -1,5 +1,6 @@
 import type { ListQuery, RecipeDetail, RecipeInput, RecipeSummary } from '../schemas/recipe.js';
 import type { Db } from './connection.js';
+import { createIngredientIndexer } from './ingredients.js';
 
 interface RecipeRow {
   id: number;
@@ -36,7 +37,11 @@ function insertChildren(db: Db, recipeId: number, input: RecipeInput): void {
   const insertIngredient = db.prepare(
     'INSERT INTO recipe_ingredient (recipe_id, position, raw_text) VALUES (?, ?, ?)',
   );
-  input.ingredients.forEach((text, position) => insertIngredient.run(recipeId, position, text));
+  const indexIngredient = createIngredientIndexer(db);
+  input.ingredients.forEach((text, position) => {
+    const { lastInsertRowid } = insertIngredient.run(recipeId, position, text);
+    indexIngredient(Number(lastInsertRowid), text);
+  });
 
   const insertStep = db.prepare('INSERT INTO recipe_step (recipe_id, position, text) VALUES (?, ?, ?)');
   input.steps.forEach((text, position) => insertStep.run(recipeId, position, text));
@@ -81,6 +86,15 @@ export function listRecipes(db: Db, { limit, offset }: ListQuery): { items: Reci
     .all(limit, offset) as RecipeRow[];
   const { total } = db.prepare('SELECT COUNT(*) AS total FROM recipe').get() as { total: number };
   return { items: rows.map(toSummary), total };
+}
+
+/** Summaries for a set of recipe ids (callers keep the set small: it becomes SQL placeholders). */
+export function getRecipeSummaries(db: Db, ids: number[]): Map<number, RecipeSummary> {
+  if (ids.length === 0) return new Map();
+  const rows = db
+    .prepare(`SELECT ${SUMMARY_COLUMNS} FROM recipe WHERE id IN (${ids.map(() => '?').join(',')})`)
+    .all(...ids) as RecipeRow[];
+  return new Map(rows.map((row) => [row.id, toSummary(row)]));
 }
 
 /** Replaces the recipe's fields, ingredients and steps. Returns false when the recipe does not exist. */

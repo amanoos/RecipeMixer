@@ -118,6 +118,25 @@ describe('routing', () => {
     expect(await screen.findByRole('heading', { name: /new recipe/i })).toBeInTheDocument();
   });
 
+  it('links to the ingredient search from the header', async () => {
+    stubFetch(routes);
+    renderApp('/');
+    expect(screen.getByRole('link', { name: 'What can I cook?' })).toHaveAttribute('href', '/match');
+  });
+
+  it('shows the ingredient search page', async () => {
+    stubFetch(routes);
+    renderApp('/match');
+    expect(await screen.findByRole('heading', { name: 'What can I cook?' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Ingredients you have')).toBeInTheDocument();
+  });
+
+  it('marks the ingredient search link as the current page on that page', async () => {
+    stubFetch(routes);
+    renderApp('/match');
+    expect(screen.getByRole('link', { name: 'What can I cook?' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('shows a friendly page for unknown routes', async () => {
     stubFetch(routes);
     renderApp('/definitely/not/here');

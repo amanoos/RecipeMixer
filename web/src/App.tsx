@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from 'react-router';
 import { Layout } from '@/components/Layout';
 import { buttonVariants } from '@/components/ui/button';
+import { MatchPage } from '@/pages/MatchPage';
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage';
 import { RecipeFormPage } from '@/pages/RecipeFormPage';
 import { RecipeListPage } from '@/pages/RecipeListPage';
@@ -21,6 +22,7 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<RecipeListPage />} />
+        <Route path="match" element={<MatchPage />} />
         <Route path="recipes/new" element={<RecipeFormPage />} />
         <Route path="recipes/:id" element={<RecipeDetailPage />} />
         <Route path="recipes/:id/edit" element={<RecipeFormPage />} />

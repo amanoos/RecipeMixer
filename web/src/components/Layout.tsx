@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { Moon, Plus, Sun } from 'lucide-react';
 import { ServerStatus } from '@/components/ServerStatus';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type Theme = 'light' | 'dark';
 
@@ -53,6 +54,12 @@ export function Layout() {
             RecipeMixer
           </Link>
           <div className="flex items-center gap-1">
+            <NavLink
+              to="/match"
+              className={({ isActive }) => cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted')}
+            >
+              What can I cook?
+            </NavLink>
             <Link to="/recipes/new" className={buttonVariants({ size: 'sm' })}>
               <Plus aria-hidden="true" />
               New recipe
