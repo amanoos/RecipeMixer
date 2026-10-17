@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Debian (glibc) rather than Alpine so better-sqlite3's prebuilt binary is used.
-FROM node:24-bookworm-slim AS build
+FROM node:25-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json server/
@@ -13,7 +13,7 @@ COPY server server
 COPY web web
 RUN npm run build
 
-FROM node:24-bookworm-slim AS deps
+FROM node:25-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY server/package.json server/
@@ -22,7 +22,7 @@ RUN npm ci --omit=dev --ignore-scripts -w server \
  && node -e "new (require('better-sqlite3'))(':memory:').close()" \
  && node -e "require('sharp')({ create: { width: 2, height: 2, channels: 3, background: 'red' } }).webp().toBuffer().then(() => console.log('sharp ok'))"
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:25-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3210 \
