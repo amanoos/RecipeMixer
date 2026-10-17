@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, previewImport } from '@/lib/api';
 import type { ImportPreview } from '@/lib/types';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 function messageFor(err: unknown): string {
   if (err instanceof ApiError) {
@@ -15,6 +16,7 @@ function messageFor(err: unknown): string {
 }
 
 export function ImportPage() {
+  useDocumentTitle('Import a recipe');
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);

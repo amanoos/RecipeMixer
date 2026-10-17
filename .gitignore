@@ -30,3 +30,6 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/settings.local.json
+
+# demo libraries made by npm run seed:demo
+demo-data/

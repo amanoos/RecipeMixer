@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
-import { Moon, Plus, Sun } from 'lucide-react';
+import { ChefHat, Moon, Plus, Sun } from 'lucide-react';
+import { RouteFocus } from '@/components/RouteFocus';
 import { ServerStatus } from '@/components/ServerStatus';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -33,6 +34,12 @@ function initialTheme(): Theme {
   return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light';
 }
 
+/** Keeps the address clean (no #main) while still moving focus to the page content. */
+function skipToContent(event: MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault();
+  document.getElementById('main')?.focus();
+}
+
 export function Layout() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
 
@@ -48,12 +55,31 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <a
+        href="#main"
+        onClick={skipToContent}
+        className="sr-only rounded-md bg-background px-3 py-2 text-sm font-medium shadow-md outline-none focus:not-sr-only focus:absolute focus:top-2 focus:left-4 focus:z-50 focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        Skip to content
+      </a>
+
       <header className="border-b">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
-          <Link to="/" className="text-lg font-semibold tracking-tight">
+        {/* On a phone the logo and theme button share the first row and the links wrap beneath. */}
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3">
+          <Link to="/" className="mr-auto inline-flex items-center gap-2 text-lg font-semibold tracking-tight pointer-coarse:min-h-11">
+            <ChefHat aria-hidden="true" className="size-5 text-primary" />
             RecipeMixer
           </Link>
-          <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:order-3"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            {theme === 'dark' ? <Sun /> : <Moon />}
+          </Button>
+          <nav aria-label="Main" className="flex w-full flex-wrap items-center gap-1 sm:order-2 sm:w-auto">
             <NavLink
               to="/match"
               className={({ isActive }) => cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted')}
@@ -70,19 +96,11 @@ export function Layout() {
               <Plus aria-hidden="true" />
               New recipe
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-            >
-              {theme === 'dark' ? <Sun /> : <Moon />}
-            </Button>
-          </div>
+          </nav>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 outline-none">
         <Outlet />
       </main>
 
@@ -91,6 +109,8 @@ export function Layout() {
           <ServerStatus />
         </div>
       </footer>
+
+      <RouteFocus targetId="main" />
     </div>
   );
 }

@@ -156,7 +156,7 @@ Add a recipe by hand or by URL, then type ingredients and see ranked matches wit
 | 3 | Name/cuisine/rating search | FTS5 search, cuisine filter, rating sort, own star ratings | complete | with 4, 5 | 2 | [plan](../plans/completed/recipe-search.plan.md), [report](../reports/recipe-search-report.md) |
 | 4 | Ingredient matching | Ingredient parser/normaliser, ranking by overlap, missing list, benchmark | complete | with 3, 5 | 2 | [plan](../plans/completed/ingredient-matching.plan.md), [report](../reports/ingredient-matching-report.md) |
 | 5 | URL import | JSON-LD import, image download, SSRF hardening and tests | complete | with 3, 4 | 2 | [plan](../plans/completed/url-import.plan.md), [report](../reports/url-import-report.md) |
-| 6 | UI polish | Ingredient chips, search-as-you-type, recipe cards, dark mode, responsive layout, accessibility | pending | - | 3, 4 | - |
+| 6 | UI polish | Ingredient chips, search-as-you-type, recipe cards, dark mode, responsive layout, accessibility | complete | - | 3, 4 | [plan](../plans/completed/ui-polish.plan.md), [report](../reports/ui-polish-report.md) |
 | 7 | Optional data sources | Licence-checked seed data; optional TheMealDB importer (off by default) | pending | with 8 | 4, 5 | - |
 | 8 | Hardening & deployment | Shared-password auth, CSP, security review, cloud deployment guide, README/SECURITY.md | pending | with 7 | 5, 6 | - |
 

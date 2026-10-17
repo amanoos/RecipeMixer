@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Search } from 'lucide-react';
+import { ChefHat, Search, SearchX } from 'lucide-react';
+import { CardGridSkeleton } from '@/components/CardGridSkeleton';
+import { imagePriority } from '@/components/CardImage';
 import { RecipeCard } from '@/components/RecipeCard';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { listCuisines, listRecipes } from '@/lib/api';
 import type { Cuisine, RecipeSummary, SortOrder } from '@/lib/types';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 const PAGE_SIZE = 24;
 const SEARCH_DELAY_MS = 300;
@@ -15,7 +17,7 @@ const SORTS: SortOrder[] = ['relevance', 'newest', 'rating', 'title'];
 const RATING_CHOICES = [2, 3, 4, 5];
 
 const SELECT_CLASS =
-  'h-8 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
+  'h-8 rounded-lg border pointer-coarse:h-11 border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
 
 interface Filters {
   q: string;
@@ -44,6 +46,7 @@ const hasAnyFilter = (filters: Filters): boolean =>
  * (?q=tomato&cuisine=Italian&minRating=4&sort=rating) so it survives a refresh and the back button.
  */
 export function RecipeListPage() {
+  useDocumentTitle('Your recipes');
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => readFilters(params), [params]);
   const [text, setText] = useState(filters.q);
@@ -228,11 +231,7 @@ export function RecipeListPage() {
       )}
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Loading recipes">
-          {[0, 1, 2].map((n) => (
-            <Skeleton key={n} className="h-64 w-full" />
-          ))}
-        </div>
+        <CardGridSkeleton label="Loading recipes" />
       ) : failed && items.length === 0 ? (
         <div role="alert" className="space-y-3 text-center">
           <p>Could not load your recipes. Is the server running?</p>
@@ -241,7 +240,8 @@ export function RecipeListPage() {
           </Button>
         </div>
       ) : items.length === 0 && !filtered ? (
-        <div className="space-y-3 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 py-16 text-center">
+          <ChefHat aria-hidden="true" className="size-10 text-primary" />
           <h2 className="text-xl font-semibold">No recipes yet</h2>
           <p className="text-muted-foreground">Save your first recipe to start your collection.</p>
           <Link to="/recipes/new" className={buttonVariants()}>
@@ -249,7 +249,8 @@ export function RecipeListPage() {
           </Link>
         </div>
       ) : items.length === 0 ? (
-        <div className="space-y-3 py-12 text-center">
+        <div className="flex flex-col items-center gap-3 py-12 text-center">
+          <SearchX aria-hidden="true" className="size-8 text-muted-foreground" />
           <h2 className="text-lg font-semibold">No recipes match your search</h2>
           <p className="text-muted-foreground">Try different words, or clear the filters.</p>
           <Button variant="outline" onClick={clearFilters}>
@@ -265,9 +266,9 @@ export function RecipeListPage() {
             </p>
           )}
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((recipe) => (
+            {items.map((recipe, index) => (
               <li key={recipe.id}>
-                <RecipeCard recipe={recipe} />
+                <RecipeCard recipe={recipe} priority={imagePriority(index)} />
               </li>
             ))}
           </ul>

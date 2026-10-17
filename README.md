@@ -14,7 +14,7 @@ Available now:
 - Add a photo to each recipe: JPEG, PNG or WebP up to 5 MB, stored as a WebP file on disk with location and camera data removed
 - **Search** your recipes as you type, across title, cuisine, description and ingredients (word forms and accents are matched, and the best match comes first), filter by cuisine and minimum rating, and sort by best match, newest, highest rated or title. Rate a recipe with one click on its page
 - **What can I cook?** Enter the ingredients you have and see your recipes ranked by how much of each you can already make, with the missing ingredients listed. A partial match is fine, and the search lives in the page URL so it can be bookmarked
-- Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes
+- Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes. It fits any screen from a 320 px phone up, uses comfortable touch sizes on touch devices, stays still while loading, has a "Skip to content" link, a title for every page and keyboard focus that follows you from page to page, and honours the system setting for reduced motion
 - Everything open source, no accounts, no telemetry, no paid services
 
 - **Import from a link:** paste the address of a recipe page and RecipeMixer reads the page's standard `schema.org` recipe data (title, ingredients, steps, cuisine, photo), shows it in the normal form for you to check, and saves it with the photo. Nothing is saved until you press Save
@@ -77,6 +77,8 @@ web/      React + Vite + Tailwind CSS v4 + shadcn/ui
 
 Useful commands: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run audit:licenses`.
 
+To try the app with made-up recipes (30 recipes with photos, nothing real), fill a new folder and point the server at it: `npm run seed:demo -w server -- --dir ./demo-data`, then `npm run build` and `DATA_DIR=./demo-data npm start`. The command refuses to run without `--dir` and refuses a folder that already holds a database, so it can never add demo recipes to your own library.
+
 To scan for secrets before committing, install [gitleaks](https://github.com/gitleaks/gitleaks) and enable the hook: `git config core.hooksPath .githooks`.
 
 ## API
@@ -137,7 +139,7 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 3. Name, cuisine and rating search (done)
 4. Ingredient matching (done)
 5. URL import with SSRF protection (done)
-6. UI polish
+6. UI polish (done)
 7. Optional data sources
 8. Authentication, hardening and cloud deployment guide
 

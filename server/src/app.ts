@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import compress from '@fastify/compress';
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
@@ -51,6 +52,9 @@ export async function buildApp({ config, db, rateLimitMax = 300, fetcher }: AppD
   });
 
   await registerSecurity(app, { rateLimitMax });
+  // Text responses (pages, scripts, styles, JSON) are sent gzip or brotli compressed to clients that accept it.
+  // Images are already compressed, and the library only skips content types that do not compress.
+  await app.register(compress, { threshold: 1024 });
   // Registered after the security plugins so headers and rate limiting also cover uploads.
   // Only a single image file is accepted: no extra form fields, one part, capped size.
   await app.register(multipart, {
@@ -74,7 +78,16 @@ export async function buildApp({ config, db, rateLimitMax = 300, fetcher }: AppD
   // The data directory is deliberately never served; images go through the validated /api/images route.
   const hasWebBuild = fs.existsSync(path.join(config.webDist, 'index.html'));
   if (hasWebBuild) {
-    await app.register(fastifyStatic, { root: config.webDist });
+    await app.register(fastifyStatic, {
+      root: config.webDist,
+      cacheControl: false,
+      // Files under assets/ have a hash of their content in the name, so they never change under that
+      // name and can be kept for a year. Everything else (index.html) is checked again on every visit.
+      setHeaders: (res, filePath) => {
+        const hashed = path.relative(config.webDist, filePath).split(path.sep)[0] === 'assets';
+        res.header('Cache-Control', hashed ? 'public, max-age=31536000, immutable' : 'no-cache');
+      },
+    });
   }
 
   app.setNotFoundHandler((req, reply) => {
