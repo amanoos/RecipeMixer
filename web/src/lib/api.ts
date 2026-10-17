@@ -1,4 +1,4 @@
-import type { RecipeDetail, RecipeInput, RecipeList } from '@/lib/types';
+import type { IngredientSuggestion, MatchResult, RecipeDetail, RecipeInput, RecipeList } from '@/lib/types';
 
 /** An error response from the server; `message` is the server's safe, user-facing text. */
 export class ApiError extends Error {
@@ -63,6 +63,34 @@ export function uploadImage(id: number, file: File): Promise<RecipeDetail> {
   form.append('image', file);
   // No Content-Type header: the browser adds the multipart boundary itself.
   return request<RecipeDetail>(`/api/recipes/${id}/image`, { method: 'PUT', body: form });
+}
+
+export function matchRecipes(options: {
+  ingredients: string[];
+  /** Assume pantry staples (salt, pepper, water, oil) are on hand. Defaults to true. */
+  staples?: boolean;
+  minCoverage?: number;
+  limit?: number;
+  offset?: number;
+  signal?: AbortSignal;
+}): Promise<MatchResult> {
+  const { ingredients, staples = true, minCoverage, limit = 24, offset = 0, signal } = options;
+  // URLSearchParams encodes the user's text, so it can never change the shape of the query.
+  const params = new URLSearchParams();
+  for (const ingredient of ingredients) params.append('i', ingredient);
+  params.set('staples', staples ? '1' : '0');
+  if (minCoverage !== undefined) params.set('minCoverage', String(minCoverage));
+  params.set('limit', String(limit));
+  params.set('offset', String(offset));
+  return request<MatchResult>(`/api/match?${params.toString()}`, { signal });
+}
+
+export async function suggestIngredients(prefix: string, signal?: AbortSignal): Promise<IngredientSuggestion[]> {
+  const params = new URLSearchParams({ q: prefix });
+  const { items } = await request<{ items: IngredientSuggestion[] }>(`/api/ingredients/suggest?${params.toString()}`, {
+    signal,
+  });
+  return items;
 }
 
 export function deleteImage(id: number): Promise<RecipeDetail> {

@@ -1,14 +1,18 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { openDatabase } from './db/connection.js';
+import { backfillIngredients } from './db/ingredients.js';
 import { migrate } from './db/migrate.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
   const db = openDatabase(config.dataDir);
   migrate(db);
+  // Indexes ingredient lines saved before the matching feature (or by an older rule version).
+  const reindexed = backfillIngredients(db);
 
   const app = await buildApp({ config, db });
+  if (reindexed > 0) app.log.info({ reindexed }, 'ingredient index updated');
 
   let shuttingDown = false;
   const shutdown = async (signal: string): Promise<void> => {

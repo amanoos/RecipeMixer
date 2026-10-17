@@ -6,6 +6,8 @@ import {
   deleteRecipe,
   getRecipe,
   listRecipes,
+  matchRecipes,
+  suggestIngredients,
   updateRecipe,
   uploadImage,
 } from './api';
@@ -109,5 +111,46 @@ describe('api client', () => {
     const [url, init] = mock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('/api/recipes/2/image');
     expect(init.method).toBe('DELETE');
+  });
+});
+
+describe('matching api', () => {
+  const emptyMatch = { items: [], total: 0, usedIngredients: [], ignored: [], assumeStaples: true };
+
+  it('sends each ingredient as a repeated "i" parameter with the defaults', async () => {
+    const mock = stubFetch(ok(emptyMatch));
+    await matchRecipes({ ingredients: ['chicken', 'rice'] });
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/match?i=chicken&i=rice&staples=1&limit=24&offset=0');
+  });
+
+  it('sends staples, coverage, limit and offset when given', async () => {
+    const mock = stubFetch(ok(emptyMatch));
+    await matchRecipes({ ingredients: ['egg'], staples: false, minCoverage: 0.5, limit: 10, offset: 20 });
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/match?i=egg&staples=0&minCoverage=0.5&limit=10&offset=20');
+  });
+
+  it('encodes ingredient text so it cannot change the query', async () => {
+    const mock = stubFetch(ok(emptyMatch));
+    await matchRecipes({ ingredients: ['mac & cheese', 'a=b&staples=0', '100% juice'] });
+    const url = new URL(String(mock.mock.calls[0]?.[0]), 'http://localhost');
+    expect(url.searchParams.getAll('i')).toEqual(['mac & cheese', 'a=b&staples=0', '100% juice']);
+    expect(url.searchParams.get('staples')).toBe('1');
+  });
+
+  it('returns the parsed result and maps errors to ApiError', async () => {
+    stubFetch(ok({ ...emptyMatch, total: 3 }));
+    await expect(matchRecipes({ ingredients: ['egg'] })).resolves.toMatchObject({ total: 3 });
+
+    stubFetch(fail(400, { error: 'Invalid i: at least one ingredient is required' }));
+    await expect(matchRecipes({ ingredients: [] })).rejects.toMatchObject({
+      status: 400,
+      message: 'Invalid i: at least one ingredient is required',
+    });
+  });
+
+  it('asks for suggestions with an encoded prefix and returns the list', async () => {
+    const mock = stubFetch(ok({ items: [{ name: 'onion', count: 3 }] }));
+    await expect(suggestIngredients('o&n')).resolves.toEqual([{ name: 'onion', count: 3 }]);
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/ingredients/suggest?q=o%26n');
   });
 });
