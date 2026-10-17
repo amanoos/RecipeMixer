@@ -4,7 +4,7 @@ An open source, local-first recipe manager that answers one question: **what can
 
 Type the ingredients in your fridge and RecipeMixer will rank your saved recipes by how many of their ingredients you already have, and show what is missing. It is built to cut food waste, not to replace a full meal planner.
 
-> **Status: early development.** You can save, view, edit, search and delete recipes with photos, and find what you can cook from the ingredients you have. URL import is planned. See [the roadmap](#roadmap).
+> **Status: early development.** You can save, view, edit, search and delete recipes with photos, find what you can cook from the ingredients you have, and import a recipe from a link. See [the roadmap](#roadmap).
 
 ## Features
 
@@ -17,9 +17,7 @@ Available now:
 - Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes
 - Everything open source, no accounts, no telemetry, no paid services
 
-Planned:
-
-- Import recipes from a URL using the page's standard `schema.org` recipe data
+- **Import from a link:** paste the address of a recipe page and RecipeMixer reads the page's standard `schema.org` recipe data (title, ingredients, steps, cuisine, photo), shows it in the normal form for you to check, and saves it with the photo. Nothing is saved until you press Save
 
 ## Quick start
 
@@ -63,6 +61,7 @@ Settings come from environment variables (see [`.env.example`](.env.example)). N
 | `DATA_DIR` | `./data` | Where the SQLite database (and later, images) are stored. |
 | `LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent`. |
 | `ALLOW_INSECURE_NO_AUTH` | `false` | Explicit opt-in to listen beyond loopback without authentication. |
+| `URL_IMPORT_ENABLED` | `true` | Set to `false` to turn off fetching pages and photos from links completely. |
 | `WEB_DIST` | built-in path | Folder containing the built web app. Set automatically in Docker. |
 
 ### Backups
@@ -99,6 +98,8 @@ JSON over HTTP on the same port as the web app. Errors look like `{"error": "mes
 | `GET /api/images/:filename` | Serve a stored image (content-hash filenames only) |
 | `GET /api/match?i=chicken&i=rice&staples=1` | Rank recipes by the ingredients you have (`i` repeated, 1 to 30 items of up to 60 characters; `staples=0` counts salt, pepper, water and oil too; optional `minCoverage`, `limit`, `offset`) |
 | `GET /api/ingredients/suggest?q=on` | Ingredient names from your recipes that start with a prefix |
+| `POST /api/import/preview` | Fetch a recipe page and return what was read (`{"url": "https://..."}`); saves nothing. Limited to 10 calls a minute |
+| `POST /api/recipes/:id/image/from-url` | Download a photo from a link, re-encode it like an upload and attach it to a saved recipe |
 
 ## How matching works
 
@@ -111,9 +112,19 @@ Each ingredient line is read when a recipe is saved ("2 cups chopped yellow onio
 - **Limits:** the rules are an English, Western-cuisine approximation; quantities are stored but not compared; a line like "salt, pepper" is read up to the first comma. If a match looks wrong, the word lists live in `server/src/services/ingredient-data.ts`.
 - **Tuning:** `npm run eval:matching -w server -- sets.json` prints the top matches for your own ingredient lists (see `server/scripts/example-sets.json`) so you can judge the results by eye, and `npm run bench -w server` checks speed on a 15,000-recipe library.
 
+## How URL import works
+
+Open **Import**, paste a link and press Import. The server fetches the page, looks for the recipe data that most recipe sites publish for search engines (`schema.org` JSON-LD), and opens the new-recipe form pre-filled. Check it, change what you like, and save. If the page named a photo, it is downloaded when you save (untick the box to skip it).
+
+- **What it reads:** title, description, cuisine, ingredients, steps and the photo address. Your own star rating is never imported.
+- **When it cannot:** pages without that data (some blogs, paywalled or script-only sites) give "No recipe data found on that page"; add those recipes by hand.
+- **Duplicates:** if a saved recipe already uses the same link you are told, and can still import anyway.
+- **Safety:** the server only fetches public web addresses, so a pasted link cannot be used to reach your own machine or network. See [SECURITY.md](SECURITY.md) for the details.
+- **Measuring it:** `npm run eval:import -w server -- urls.txt` tries your own list of links (see `server/scripts/example-urls.txt`) and prints how many import with a title, ingredients and a photo.
+
 ## Security and privacy
 
-See [SECURITY.md](SECURITY.md). In short: your recipes and images stay on your machine, nothing is sent to third parties, and this repository never contains user data (databases, images and `.env` files are git-ignored).
+See [SECURITY.md](SECURITY.md). In short: your recipes and images stay on your machine, nothing is sent anywhere except the requests you start when importing from a link, and this repository never contains user data (databases, images and `.env` files are git-ignored).
 
 ## Recipe content and images
 
@@ -125,7 +136,7 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 2. Recipes and images (done)
 3. Name, cuisine and rating search (done)
 4. Ingredient matching (done)
-5. URL import with SSRF protection
+5. URL import with SSRF protection (done)
 6. UI polish
 7. Optional data sources
 8. Authentication, hardening and cloud deployment guide

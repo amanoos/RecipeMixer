@@ -49,3 +49,14 @@ describe('isLoopbackHost', () => {
     expect(isLoopbackHost(host)).toBe(false);
   });
 });
+
+describe('URL import switch', () => {
+  it('is on by default and can be turned off', () => {
+    expect(loadConfig({}).urlImportEnabled).toBe(true);
+    expect(loadConfig({ URL_IMPORT_ENABLED: 'false' }).urlImportEnabled).toBe(false);
+  });
+
+  it('rejects other values', () => {
+    expect(() => loadConfig({ URL_IMPORT_ENABLED: 'maybe' })).toThrow(/URL_IMPORT_ENABLED/);
+  });
+});

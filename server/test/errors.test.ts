@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { badRequest, HttpError, notFound, payloadTooLarge, unsupportedMediaType } from '../src/errors.js';
+import {
+  badGateway,
+  badRequest,
+  HttpError,
+  notFound,
+  payloadTooLarge,
+  tooManyRequests,
+  unprocessable,
+  unsupportedMediaType,
+} from '../src/errors.js';
 import { listQuerySchema, parseOrThrow, recipeInputSchema } from '../src/schemas/recipe.js';
 
 describe('HttpError', () => {
@@ -16,6 +25,9 @@ describe('HttpError', () => {
     expect(notFound().message).toBe('Not Found');
     expect(payloadTooLarge('x').statusCode).toBe(413);
     expect(unsupportedMediaType('x').statusCode).toBe(415);
+    expect(unprocessable('x').statusCode).toBe(422);
+    expect(tooManyRequests('x').statusCode).toBe(429);
+    expect(badGateway('x').statusCode).toBe(502);
   });
 });
 

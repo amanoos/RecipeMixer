@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { Db } from '../db/connection.js';
 import {
-  countImageReferences,
   createRecipe,
   deleteRecipe,
   getRecipe,
@@ -14,24 +13,18 @@ import { listCuisines } from '../db/search.js';
 import { badRequest, notFound, payloadTooLarge, unsupportedMediaType } from '../errors.js';
 import { listQuerySchema, parseOrThrow, ratingInputSchema, recipeInputSchema } from '../schemas/recipe.js';
 import { processImage, type ImageStore } from '../services/images.js';
+import { attachImage, removeImageIfUnused } from '../services/recipe-images.js';
 
 /** Ids are positive integers; anything else is simply "not found" and never reaches SQL. */
-function parseId(raw: string): number {
+export function parseId(raw: string): number {
   if (!/^[1-9]\d{0,8}$/.test(raw)) throw notFound('Recipe not found');
   return Number(raw);
 }
 
-function requireRecipe(db: Db, id: number) {
+export function requireRecipe(db: Db, id: number) {
   const recipe = getRecipe(db, id);
   if (!recipe) throw notFound('Recipe not found');
   return recipe;
-}
-
-/** Image files are content-addressed and may be shared, so delete only when nothing references them. */
-async function removeImageIfUnused(db: Db, images: ImageStore, filename: string | null): Promise<void> {
-  if (filename && countImageReferences(db, filename) === 0) {
-    await images.remove(filename);
-  }
 }
 
 export const recipeRoutes: FastifyPluginAsync<{ db: Db; images: ImageStore }> = async (app, { db, images }) => {
@@ -92,9 +85,7 @@ export const recipeRoutes: FastifyPluginAsync<{ db: Db; images: ImageStore }> = 
     }
 
     const { data, filename } = await processImage(upload);
-    await images.save(filename, data);
-    const { previous } = setRecipeImage(db, id, filename);
-    if (previous && previous !== filename) await removeImageIfUnused(db, images, previous);
+    await attachImage(db, images, id, data, filename);
     return requireRecipe(db, id);
   });
 

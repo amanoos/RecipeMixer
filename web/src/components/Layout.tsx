@@ -60,6 +60,12 @@ export function Layout() {
             >
               What can I cook?
             </NavLink>
+            <NavLink
+              to="/import"
+              className={({ isActive }) => cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted')}
+            >
+              Import
+            </NavLink>
             <Link to="/recipes/new" className={buttonVariants({ size: 'sm' })}>
               <Plus aria-hidden="true" />
               New recipe

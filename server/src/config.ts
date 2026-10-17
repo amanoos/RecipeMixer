@@ -13,6 +13,8 @@ export interface Config {
   webDist: string;
   logLevel: (typeof LOG_LEVELS)[number];
   allowInsecureNoAuth: boolean;
+  /** Whether the server may fetch recipe pages and images from user-supplied URLs. */
+  urlImportEnabled: boolean;
   isProduction: boolean;
 }
 
@@ -25,6 +27,10 @@ const envSchema = z.object({
   ALLOW_INSECURE_NO_AUTH: z
     .enum(['true', 'false'])
     .default('false')
+    .transform((value) => value === 'true'),
+  URL_IMPORT_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
     .transform((value) => value === 'true'),
   NODE_ENV: z.string().optional(),
 });
@@ -69,6 +75,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     webDist: path.resolve(values.WEB_DIST ?? defaultWebDist),
     logLevel: values.LOG_LEVEL,
     allowInsecureNoAuth: values.ALLOW_INSECURE_NO_AUTH,
+    urlImportEnabled: values.URL_IMPORT_ENABLED,
     isProduction: values.NODE_ENV === 'production',
   };
 }

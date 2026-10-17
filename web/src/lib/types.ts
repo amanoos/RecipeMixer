@@ -62,3 +62,22 @@ export interface IngredientSuggestion {
   name: string;
   count: number;
 }
+
+/** What the server could read from a recipe page; shown in the form for review before anything is saved. */
+export interface RecipeDraft {
+  title: string;
+  cuisine: string | null;
+  description: string | null;
+  ingredients: string[];
+  steps: string[];
+}
+
+export interface ImportPreview {
+  draft: RecipeDraft;
+  /** The page's photo, downloaded by the server only after the recipe is saved. */
+  imageUrl: string | null;
+  /** The address that answered, after redirects. */
+  sourceUrl: string;
+  /** Id of a saved recipe that already uses this source link. */
+  existingRecipeId: number | null;
+}
