@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- tomato -->
+  <g transform="translate(24 28)"><circle cx="22" cy="26" r="18"/><path d="M22 8 l-8 -6 M22 8 l8 -6 M22 8 v-8"/></g>
+  <!-- carrot -->
+  <g transform="translate(150 20) rotate(28 20 30)"><path d="M10 20 Q20 14 30 20 L20 58 Z"/><path d="M20 14 l-6 -10 M20 14 l6 -10 M20 14 v-12"/></g>
+  <!-- spoon -->
+  <g transform="translate(96 96) rotate(-30 12 30)"><ellipse cx="12" cy="10" rx="9" ry="12"/><path d="M12 22 V58"/></g>
+  <!-- leaf -->
+  <g transform="translate(200 120)"><path d="M4 40 Q0 6 36 2 Q40 38 4 40 Z"/><path d="M8 36 Q20 20 32 6"/></g>
+  <!-- lemon -->
+  <g transform="translate(20 140)"><path d="M4 22 Q10 4 28 6 Q46 8 48 22 Q42 40 26 40 Q10 40 4 22 Z"/><path d="M26 6 V40 M10 14 L44 32"/></g>
+  <!-- whisk -->
+  <g transform="translate(120 190)"><path d="M18 2 V22"/><path d="M18 22 Q2 30 18 56 Q34 30 18 22 Z"/><path d="M18 22 V56"/></g>
+  <!-- chilli -->
+  <g transform="translate(210 210) rotate(-20 16 20)"><path d="M6 10 Q30 6 32 26 Q32 44 16 50 Q24 30 6 10 Z"/><path d="M6 10 l-4 -6"/></g>
+  <!-- star sparkles -->
+  <path d="M84 40 v14 M77 47 h14"/>
+  <path d="M236 70 v10 M231 75 h10"/>
+  <path d="M60 236 v10 M55 241 h10"/>
+  <path d="M170 150 v12 M164 156 h12"/>
+</svg>

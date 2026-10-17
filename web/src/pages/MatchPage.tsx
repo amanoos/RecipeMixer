@@ -160,7 +160,7 @@ function Results({ hasIngredients, result, loading, loadingMore, failed, onRetry
           <h2 className="text-lg font-semibold">
             {result.total} {result.total === 1 ? 'recipe' : 'recipes'} you could make or nearly make
           </h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="rm-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {result.items.map((item, index) => (
               <li key={item.recipe.id}>
                 <MatchCard item={item} priority={imagePriority(index)} />

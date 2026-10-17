@@ -2,11 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/fredoka";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: 'Fredoka Variable', var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -49,30 +50,30 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.553 0.195 38.402);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --background: oklch(0.975 0.02 85);
+    --foreground: oklch(0.26 0.04 50);
+    --card: oklch(0.995 0.008 85);
+    --card-foreground: oklch(0.26 0.04 50);
+    --popover: oklch(0.995 0.008 85);
+    --popover-foreground: oklch(0.26 0.04 50);
+    --primary: oklch(0.55 0.2 30);
+    --primary-foreground: oklch(0.99 0.01 85);
+    --secondary: oklch(0.92 0.06 135);
+    --secondary-foreground: oklch(0.3 0.07 140);
+    --muted: oklch(0.945 0.03 85);
+    --muted-foreground: oklch(0.47 0.03 60);
+    --accent: oklch(0.92 0.09 90);
+    --accent-foreground: oklch(0.3 0.05 70);
     --destructive: oklch(0.505 0.213 27.518);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --border: oklch(0.87 0.035 80);
+    --input: oklch(0.87 0.035 80);
+    --ring: oklch(0.6 0.15 30);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
+    --radius: 0.875rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
@@ -81,27 +82,30 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --glow-1: oklch(0.92 0.09 60 / 0.6);
+    --glow-2: oklch(0.92 0.09 140 / 0.45);
+    --doodle: oklch(0.6 0.08 60 / 0.12);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.75 0.15 52);
+    --background: oklch(0.21 0.02 60);
+    --foreground: oklch(0.95 0.02 85);
+    --card: oklch(0.26 0.025 60);
+    --card-foreground: oklch(0.95 0.02 85);
+    --popover: oklch(0.26 0.025 60);
+    --popover-foreground: oklch(0.95 0.02 85);
+    --primary: oklch(0.75 0.15 45);
     --primary-foreground: oklch(0.2 0.03 45);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.34 0.06 145);
+    --secondary-foreground: oklch(0.92 0.05 135);
+    --muted: oklch(0.3 0.02 60);
+    --muted-foreground: oklch(0.76 0.03 80);
+    --accent: oklch(0.4 0.07 85);
+    --accent-foreground: oklch(0.95 0.05 90);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 16%);
+    --ring: oklch(0.7 0.13 45);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -115,6 +119,9 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+    --glow-1: oklch(0.38 0.07 50 / 0.45);
+    --glow-2: oklch(0.36 0.06 150 / 0.35);
+    --doodle: oklch(0.85 0.06 80 / 0.09);
 }
 
 @layer base {
@@ -135,4 +142,83 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Playful kitchen look: a warm glow, a faint pattern of food doodles, rounded headings and a little motion. */
+@layer base {
+  body {
+    background-image:
+      radial-gradient(60rem 28rem at 0% -8%, var(--glow-1), transparent 62%),
+      radial-gradient(52rem 26rem at 100% 0%, var(--glow-2), transparent 62%);
+    background-repeat: no-repeat;
+  }
+
+  /* The doodles are a mask, so one drawing takes the colour of whichever theme is on. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--doodle);
+    -webkit-mask-image: url('./assets/doodles.svg');
+    mask-image: url('./assets/doodles.svg');
+    -webkit-mask-size: 260px 260px;
+    mask-size: 260px 260px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-heading);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rm-fade-up {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes rm-wobble {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg) scale(1.1); }
+    75% { transform: rotate(10deg) scale(1.1); }
+  }
+  @keyframes rm-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes rm-pop {
+    0% { transform: scale(0.85); opacity: 0; }
+    70% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  /* A page's content slides up as it arrives. */
+  main > * { animation: rm-fade-up 0.45s ease-out both; }
+
+  /* Lists and card grids rise one after another, up to the twelfth item. */
+  .rm-stagger > * { animation: rm-fade-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .rm-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+  .rm-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+  .rm-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+  .rm-stagger > *:nth-child(5) { animation-delay: 0.2s; }
+  .rm-stagger > *:nth-child(6) { animation-delay: 0.25s; }
+  .rm-stagger > *:nth-child(7) { animation-delay: 0.3s; }
+  .rm-stagger > *:nth-child(8) { animation-delay: 0.35s; }
+  .rm-stagger > *:nth-child(9) { animation-delay: 0.4s; }
+  .rm-stagger > *:nth-child(10) { animation-delay: 0.45s; }
+  .rm-stagger > *:nth-child(11) { animation-delay: 0.5s; }
+  .rm-stagger > *:nth-child(n + 12) { animation-delay: 0.55s; }
+
+  .rm-wobble:hover { animation: rm-wobble 0.6s ease-in-out; }
+  .rm-bob { animation: rm-bob 2.6s ease-in-out infinite; }
+  .rm-pop { animation: rm-pop 0.4s ease-out both; }
 }
