@@ -1,0 +1,17 @@
+.git
+.github
+.githooks
+.claude
+.env
+.env.*
+!.env.example
+**/node_modules
+**/dist
+**/coverage
+data
+*.db
+*.db-wal
+*.db-shm
+*.log
+Dockerfile
+docker-compose.yml

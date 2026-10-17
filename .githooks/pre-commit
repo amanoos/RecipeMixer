@@ -1,0 +1,12 @@
+#!/bin/sh
+# Blocks commits that contain secrets. Enable with: git config core.hooksPath .githooks
+# Requires gitleaks (https://github.com/gitleaks/gitleaks); warns and continues if it is not installed.
+
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner || {
+    echo "pre-commit: gitleaks found potential secrets in staged changes. Commit aborted." >&2
+    exit 1
+  }
+else
+  echo "pre-commit: gitleaks is not installed, skipping the secret scan (CI will still run it)." >&2
+fi

@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    image: recipemixer:local
+    ports:
+      # Published on the loopback interface ONLY. Do not change 127.0.0.1 to 0.0.0.0
+      # (or remove it) until authentication exists: the app has no login yet.
+      - "127.0.0.1:3210:3210"
+    environment:
+      LOG_LEVEL: info
+      # The app must listen on 0.0.0.0 inside the container for Docker to forward traffic,
+      # so it needs this explicit opt-in. It is safe ONLY because of the 127.0.0.1-only
+      # port mapping above.
+      ALLOW_INSECURE_NO_AUTH: "true"
+    volumes:
+      - recipemixer-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  recipemixer-data:
