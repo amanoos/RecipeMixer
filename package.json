@@ -6,7 +6,7 @@
   "license": "MIT",
   "description": "Open source recipe manager that finds recipes from the ingredients you have on hand.",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.22.0"
   },
   "workspaces": [
     "server",
@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck -w server && npm run typecheck -w web",
     "test": "npm test -w server && npm test -w web",
-    "audit:licenses": "license-checker-rseidelsohn --start . --excludePrivatePackages --onlyAllow \"MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;BlueOak-1.0.0;CC0-1.0;MPL-2.0;Python-2.0;Unlicense;MIT-0;OFL-1.1;CC-BY-4.0;CC-BY-3.0;(MIT AND CC-BY-3.0);(MIT OR CC0-1.0)\"",
+    "audit:licenses": "license-checker-rseidelsohn --start . --excludePrivatePackages --onlyAllow \"MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;BlueOak-1.0.0;CC0-1.0;MPL-2.0;Python-2.0;Unlicense;MIT-0;OFL-1.1;CC-BY-4.0;CC-BY-3.0;(MIT AND CC-BY-3.0);(MIT OR CC0-1.0);LGPL-3.0-or-later\"",
     "secrets:scan": "gitleaks detect --no-banner"
   },
   "devDependencies": {

@@ -19,7 +19,8 @@ COPY package.json package-lock.json ./
 COPY server/package.json server/
 COPY web/package.json web/
 RUN npm ci --omit=dev --ignore-scripts -w server \
- && node -e "new (require('better-sqlite3'))(':memory:').close()"
+ && node -e "new (require('better-sqlite3'))(':memory:').close()" \
+ && node -e "require('sharp')({ create: { width: 2, height: 2, channels: 3, background: 'red' } }).webp().toBuffer().then(() => console.log('sharp ok'))"
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production \

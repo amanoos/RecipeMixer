@@ -18,16 +18,16 @@ afterEach(() => {
 });
 
 describe('migrate', () => {
-  it('applies the base schema and reports version 1', () => {
+  it('applies all migrations and reports the latest version', () => {
     db = openMemoryDatabase();
-    expect(migrate(db)).toBe(1);
+    expect(migrate(db)).toBe(2);
   });
 
   it('is idempotent', () => {
     freshDb();
-    expect(migrate(db)).toBe(1);
-    expect(getSchemaVersion(db)).toBe(1);
-    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 1 });
+    expect(migrate(db)).toBe(2);
+    expect(getSchemaVersion(db)).toBe(2);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 2 });
   });
 
   it('applies new migrations in order and skips applied ones', () => {
@@ -98,6 +98,16 @@ describe('base schema', () => {
         )
         .run(),
     ).toThrow(/FOREIGN KEY/);
+  });
+
+  it('creates the list and image reference indexes', () => {
+    freshDb();
+    const names = (
+      db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'recipe'").all() as {
+        name: string;
+      }[]
+    ).map((row) => row.name);
+    expect(names).toEqual(expect.arrayContaining(['idx_recipe_created', 'idx_recipe_image_path']));
   });
 
   it('requires a title', () => {
