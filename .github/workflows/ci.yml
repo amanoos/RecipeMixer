@@ -17,7 +17,7 @@ jobs:
     name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -33,7 +33,7 @@ jobs:
     name: Audit, licences, secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # gitleaks scans the full history
       - uses: actions/setup-node@v7
@@ -55,5 +55,5 @@ jobs:
     name: Docker build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build -t recipemixer:ci .
