@@ -2,6 +2,7 @@ import { parseIngredient } from 'parse-ingredient';
 import pluralize from 'pluralize';
 import {
   EXACT_SYNONYMS,
+  GENERIC_KINDS,
   IDENTITY_WORDS,
   PHRASE_SYNONYMS,
   STAPLE_HEAD_WORDS,
@@ -129,7 +130,38 @@ export function ingredientsMatch(userName: string, recipeName: string): boolean 
   if (user.size === 0 || recipe.size === 0) return false;
   if (isSubset(user, recipe)) return !addsIdentity(recipe, user);
   if (isSubset(recipe, user)) return !addsIdentity(user, recipe);
+  return kindCovers(user, recipe) || kindCovers(recipe, user);
+}
+
+/**
+ * True when `general` holds a general word ("beef", "cheese") and `other` names one of its specific kinds
+ * ("flank steak", "feta"). The general side may carry harmless extra words ("fish fillets"), but not
+ * ones that make it another product ("cheese powder"), and the same goes for the specific side.
+ */
+function kindCovers(general: Set<string>, other: Set<string>): boolean {
+  for (const [word, kinds] of GENERIC_KINDS) {
+    if (!general.has(word) || addsIdentity(general, new Set([word]))) continue;
+    const covered = kinds.some((kind) => {
+      const kindWords = new Set(wordsOf(kind));
+      return isSubset(kindWords, other) && !addsIdentity(other, kindWords);
+    });
+    if (covered) return true;
+  }
   return false;
+}
+
+/**
+ * Extra words worth looking up so a general name finds recipes that only name a specific kind, and a specific
+ * kind finds recipes that only say the general name. Used to widen the first, indexed search stage.
+ */
+export function relatedWords(name: string): string[] {
+  const words = new Set(wordsOf(name));
+  const related = new Set<string>();
+  for (const [general, kinds] of GENERIC_KINDS) {
+    if (words.has(general)) for (const kind of kinds) for (const word of wordsOf(kind)) related.add(word);
+    if (kinds.some((kind) => isSubset(new Set(wordsOf(kind)), words))) related.add(general);
+  }
+  return [...related];
 }
 
 export function isStapleName(name: string): boolean {

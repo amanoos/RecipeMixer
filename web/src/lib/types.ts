@@ -43,6 +43,8 @@ export interface MatchItem {
   totalCount: number;
   /** matchedCount / totalCount, between 0 and 1. */
   coverage: number;
+  /** How well the recipe fits both ways (0 to 1); the results are ordered by it. */
+  score: number;
   matched: string[];
   /** The recipe's own ingredient lines the user still needs. */
   missing: string[];

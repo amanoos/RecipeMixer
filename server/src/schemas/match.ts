@@ -37,6 +37,11 @@ export interface MatchItem {
   totalCount: number;
   /** matchedCount / totalCount, between 0 and 1. */
   coverage: number;
+  /**
+   * How well the recipe fits both ways, between 0 and 1: the harmonic mean of coverage and the share of the user's
+   * ingredients the recipe uses. This is what the results are ordered by.
+   */
+  score: number;
   /** The recipe's own ingredient lines that the user's ingredients satisfy. */
   matched: string[];
   /** The recipe's own ingredient lines the user still needs. */

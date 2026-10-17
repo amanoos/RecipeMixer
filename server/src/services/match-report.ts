@@ -22,13 +22,13 @@ export function renderMatchReport(db: Db, sets: string[][], assumeStaples: boole
       return;
     }
 
-    lines.push('| # | Recipe | You have | Coverage | Missing |', '|---|---|---|---|---|');
+    lines.push('| # | Recipe | You have | Coverage | Score | Missing |', '|---|---|---|---|---|---|');
     result.items.forEach((item, position) => {
       const shown = item.missing.slice(0, MAX_MISSING_SHOWN).join('; ');
       const more = item.missing.length > MAX_MISSING_SHOWN ? ` (+${item.missing.length - MAX_MISSING_SHOWN} more)` : '';
       lines.push(
         `| ${position + 1} | ${cell(item.recipe.title)} | ${item.matchedCount} of ${item.totalCount} | ` +
-          `${Math.round(item.coverage * 100)}% | ${shown ? cell(shown + more) : '-'} |`,
+          `${Math.round(item.coverage * 100)}% | ${item.score.toFixed(2)} | ${shown ? cell(shown + more) : '-'} |`,
       );
     });
     lines.push('');

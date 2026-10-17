@@ -11,6 +11,7 @@ function item(overrides: Partial<MatchItem> = {}): MatchItem {
     matchedCount: 5,
     totalCount: 7,
     coverage: 5 / 7,
+    score: 5 / 7,
     matched: [],
     missing: ['1 cup frozen peas and carrots', '2 cloves garlic, minced'],
     ...overrides,

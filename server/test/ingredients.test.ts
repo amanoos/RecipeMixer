@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ingredientsMatch,
+  relatedWords,
   isStapleLine,
   isStapleName,
   normalizeIngredient,
@@ -129,6 +130,59 @@ describe('ingredientsMatch', () => {
 
   it('does not match unrelated names', () => {
     expect(ingredientsMatch('apple', 'orange')).toBe(false);
+  });
+
+  it.each([
+    ['beef', '1 lb flank steak, thinly sliced'],
+    ['beef', '2 ribeye steaks'],
+    ['beef', '1 lb beef sirloin'],
+    ['cheese', '1 cup shredded cheddar'],
+    ['cheese', '4 oz feta, crumbled'],
+    ['fish', '4 salmon fillets'],
+    ['pasta', '8 oz spaghetti'],
+    ['pork', '2 pork chops'],
+    ['lamb', '4 lamb chops'],
+    ['feta', '1 cup shredded cheese'],
+    ['flank steak', '1 lb beef'],
+    ['salmon', '1 lb fish fillets'],
+    ['penne', '8 oz pasta'],
+  ])('%s satisfies "%s" through the general name', (user, recipe) => {
+    expect(match(user, recipe)).toBe(true);
+  });
+
+  it.each([
+    ['cheddar', '4 oz feta'],
+    ['feta', '1 cup shredded cheddar'],
+    ['salmon', '1 lb cod fillets'],
+    ['beef', '1 cup beef broth'],
+    ['beef', '1 lb pork chops'],
+    ['cheese', '1 tbsp cheese powder'],
+    ['cheese', '1 tbsp cheddar powder'],
+    ['cheese powder', '1 cup cheddar'],
+    ['feta', '1 tbsp cheese powder'],
+    ['beef', '1 cup sirloin broth'],
+    ['cheese', '1 cup cream cheese'],
+    ['fish', '2 tbsp fish sauce'],
+    ['pasta', '1 lb potato gnocchi'],
+    ['pork', '1 lb bacon'],
+    ['pork', '1 lb sausage'],
+    ['beef', '1 salmon steak'],
+    ['steak', '1 lb salmon'],
+  ])('%s does not satisfy "%s"', (user, recipe) => {
+    expect(match(user, recipe)).toBe(false);
+  });
+});
+
+describe('relatedWords', () => {
+  it('gives the words of the kinds for a general name, and the general name for a kind', () => {
+    expect(relatedWords('beef')).toEqual(expect.arrayContaining(['flank', 'steak', 'sirloin', 'brisket']));
+    expect(relatedWords('feta')).toEqual(['cheese']);
+    expect(relatedWords('flank steak')).toEqual(['beef']);
+  });
+
+  it('gives nothing for a name that is neither', () => {
+    expect(relatedWords('onion')).toEqual([]);
+    expect(relatedWords('')).toEqual([]);
   });
 });
 

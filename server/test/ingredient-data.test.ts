@@ -2,6 +2,7 @@ import pluralize from 'pluralize';
 import { describe, expect, it } from 'vitest';
 import {
   EXACT_SYNONYMS,
+  GENERIC_KINDS,
   IDENTITY_WORDS,
   NORMALIZER_VERSION,
   PHRASE_SYNONYMS,
@@ -73,5 +74,40 @@ describe('ingredient rule data', () => {
   it('keeps uncountable words clean and unique', () => {
     expect(new Set(UNCOUNTABLE_WORDS).size).toBe(UNCOUNTABLE_WORDS.length);
     for (const word of UNCOUNTABLE_WORDS) expect(clean(word), word).toBe(true);
+  });
+});
+
+describe('general ingredient names', () => {
+  it('keeps general names as clean single singular words, and kinds as clean singular phrases', () => {
+    for (const [general, kinds] of GENERIC_KINDS) {
+      expect(clean(general), general).toBe(true);
+      expect(general.includes(' '), general).toBe(false);
+      expect(pluralize.singular(general), general).toBe(general);
+      expect(kinds.length, general).toBeGreaterThan(0);
+      for (const kind of kinds) {
+        expect(clean(kind), kind).toBe(true);
+        for (const word of kind.split(' ')) expect(pluralize.singular(word), `${general}: ${kind}`).toBe(word);
+      }
+    }
+  });
+
+  it('lists only kinds that do not already contain the general word, and each kind once', () => {
+    const seen = new Set<string>();
+    for (const [general, kinds] of GENERIC_KINDS) {
+      for (const kind of kinds) {
+        expect(kind.split(' ').includes(general), `${general}: ${kind}`).toBe(false);
+        expect(seen.has(kind), `${kind} is listed twice`).toBe(false);
+        seen.add(kind);
+      }
+    }
+  });
+
+  it('never makes a general name a kind of another, nor uses an identity or stop word as a kind', () => {
+    for (const [general, kinds] of GENERIC_KINDS) {
+      for (const kind of kinds) {
+        expect(GENERIC_KINDS.has(kind), `${general}: ${kind}`).toBe(false);
+        for (const word of kind.split(' ')) expect(IDENTITY_WORDS.has(word) || STOP_WORDS.has(word), `${kind}: ${word}`).toBe(false);
+      }
+    }
   });
 });
