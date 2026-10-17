@@ -1,22 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { apiResponse, stubFetch } from './test-utils';
 
-function stubHealth(response: Partial<Response> | Error) {
-  const fetchMock =
-    response instanceof Error
-      ? vi.fn().mockRejectedValue(response)
-      : vi.fn().mockResolvedValue(response);
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
+const emptyList = () => apiResponse({ items: [], total: 0 });
+
+function renderApp(path = '/') {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>,
+  );
 }
-
-const okResponse = {
-  ok: true,
-  status: 200,
-  json: async () => ({ status: 'ok', schemaVersion: 1 }),
-};
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -28,32 +25,46 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('health status', () => {
+describe('server status footer', () => {
   it('shows the server as running when the API responds', async () => {
-    const fetchMock = stubHealth(okResponse);
-    render(<App />);
-    expect(await screen.findByText(/database schema v1/i)).toBeInTheDocument();
+    const fetchMock = stubFetch({
+      'GET /api/health': () => apiResponse({ status: 'ok', schemaVersion: 2 }),
+      'GET /api/recipes?limit=24&offset=0': emptyList,
+    });
+    renderApp();
+    expect(await screen.findByText(/database schema v2/i)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith('/api/health', expect.anything());
   });
 
   it('shows an error when the request fails', async () => {
-    stubHealth(new Error('network down'));
-    render(<App />);
+    stubFetch({
+      'GET /api/health': () => Promise.reject(new Error('network down')),
+      'GET /api/recipes?limit=24&offset=0': emptyList,
+    });
+    renderApp();
     expect(await screen.findByText(/cannot reach the server/i)).toBeInTheDocument();
   });
 
   it('shows an error when the API returns a non-OK status', async () => {
-    stubHealth({ ok: false, status: 500, json: async () => ({}) });
-    render(<App />);
+    stubFetch({
+      'GET /api/health': () => apiResponse({}, 500),
+      'GET /api/recipes?limit=24&offset=0': emptyList,
+    });
+    renderApp();
     expect(await screen.findByText(/cannot reach the server/i)).toBeInTheDocument();
   });
 });
 
 describe('theme toggle', () => {
+  const routes = {
+    'GET /api/health': () => apiResponse({ status: 'ok', schemaVersion: 2 }),
+    'GET /api/recipes?limit=24&offset=0': emptyList,
+  };
+
   it('toggles the dark class and remembers the choice', async () => {
-    stubHealth(okResponse);
+    stubFetch(routes);
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(screen.getByRole('button', { name: /switch to dark theme/i }));
     expect(document.documentElement).toHaveClass('dark');
@@ -66,10 +77,10 @@ describe('theme toggle', () => {
 
   it('starts in the stored theme', async () => {
     window.localStorage.setItem('recipemixer-theme', 'dark');
-    stubHealth(okResponse);
-    render(<App />);
+    stubFetch(routes);
+    renderApp();
     expect(document.documentElement).toHaveClass('dark');
-    expect(await screen.findByText(/database schema v1/i)).toBeInTheDocument();
+    expect(await screen.findByText(/database schema v2/i)).toBeInTheDocument();
   });
 
   it('keeps working when localStorage throws', async () => {
@@ -79,12 +90,37 @@ describe('theme toggle', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('storage blocked');
     });
-    stubHealth(okResponse);
+    stubFetch(routes);
     const user = userEvent.setup();
-    render(<App />);
+    renderApp();
 
     await user.click(screen.getByRole('button', { name: /switch to dark theme/i }));
     expect(document.documentElement).toHaveClass('dark');
-    expect(await screen.findByText(/database schema v1/i)).toBeInTheDocument();
+    expect(await screen.findByText(/database schema v2/i)).toBeInTheDocument();
+  });
+});
+
+describe('routing', () => {
+  const routes = {
+    'GET /api/health': () => apiResponse({ status: 'ok', schemaVersion: 2 }),
+    'GET /api/recipes?limit=24&offset=0': emptyList,
+  };
+
+  it('shows the empty state on the home page', async () => {
+    stubFetch(routes);
+    renderApp('/');
+    expect(await screen.findByRole('heading', { name: /no recipes yet/i })).toBeInTheDocument();
+  });
+
+  it('shows the new recipe form', async () => {
+    stubFetch(routes);
+    renderApp('/recipes/new');
+    expect(await screen.findByRole('heading', { name: /new recipe/i })).toBeInTheDocument();
+  });
+
+  it('shows a friendly page for unknown routes', async () => {
+    stubFetch(routes);
+    renderApp('/definitely/not/here');
+    expect(await screen.findByRole('heading', { name: /page not found/i })).toBeInTheDocument();
   });
 });

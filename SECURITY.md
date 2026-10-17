@@ -18,13 +18,15 @@ RecipeMixer is a **single-user, local-first** app. It has no accounts and no log
 - **Your data:** the database and (later) recipe images live in `DATA_DIR` on your machine or volume. Nothing is sent to third parties and there is no telemetry.
 - **Repository hygiene:** databases, images, uploads and `.env` files are git-ignored. CI runs a secret scan (gitleaks), a dependency audit and an open-source licence check. Run `git config core.hooksPath .githooks` to get a local pre-commit secret scan.
 - **Web security:** the server sends a strict Content-Security-Policy (no inline scripts or styles, no third-party origins), `X-Content-Type-Options: nosniff` and other standard headers, applies a per-IP rate limit, and never returns stack traces to clients.
+- **Image uploads:** an upload is accepted only if its bytes are a real JPEG, PNG or WebP (the client's file name and declared type are ignored; SVG, GIF and anything else is refused). It must be 5 MB or smaller and at most 40 megapixels, is decoded and re-encoded as a WebP no larger than 1600 px, and loses all metadata (EXIF, GPS, camera and copyright tags). Files are stored under a hash of their content in a private folder (`DATA_DIR/images`, mode 0700) and are served only through `/api/images/<64 hex characters>.webp`, so the data directory itself is never exposed.
+- **Recipe content:** all user text is validated for length and shape on the server, stored with parameterised SQL, and rendered by React as plain text. A recipe's source link is stored but never fetched by the server, and is shown as a clickable link only when it starts with `http://` or `https://`.
 - **Containers:** the Docker image runs as a non-root user with a read-only root filesystem, dropped capabilities and `no-new-privileges`.
 
 ## Planned protections
 
 - **URL import (SSRF):** when recipe import from URLs is added, the server will accept only `http(s)`, resolve DNS and block loopback, private, link-local and carrier-grade NAT ranges, re-validate every redirect, and limit response size and time.
 - **Authentication:** a shared password or token for any deployment reachable beyond localhost.
-- **Imported content:** imported text is rendered as plain text; images are validated by type and size and stored under random names.
+- **Imported content:** recipes imported from URLs will go through the same validation and image pipeline as manual entry.
 
 ## Out of scope
 

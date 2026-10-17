@@ -8,6 +8,8 @@ export interface Config {
   host: string;
   port: number;
   dataDir: string;
+  /** Recipe images live in a dedicated folder inside the data directory. */
+  imagesDir: string;
   webDist: string;
   logLevel: (typeof LOG_LEVELS)[number];
   allowInsecureNoAuth: boolean;
@@ -57,10 +59,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
 
+  const dataDir = path.resolve(values.DATA_DIR);
+
   return {
     host: values.HOST,
     port: values.PORT,
-    dataDir: path.resolve(values.DATA_DIR),
+    dataDir,
+    imagesDir: path.join(dataDir, 'images'),
     webDist: path.resolve(values.WEB_DIST ?? defaultWebDist),
     logLevel: values.LOG_LEVEL,
     allowInsecureNoAuth: values.ALLOW_INSECURE_NO_AUTH,

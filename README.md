@@ -4,16 +4,22 @@ An open source, local-first recipe manager that answers one question: **what can
 
 Type the ingredients in your fridge and RecipeMixer will rank your saved recipes by how many of their ingredients you already have, and show what is missing. It is built to cut food waste, not to replace a full meal planner.
 
-> **Status: early development.** This repository currently contains the foundation (server, database, web shell, Docker, CI). Recipe storage, search, ingredient matching and URL import are planned. See [the roadmap](#roadmap).
+> **Status: early development.** You can save, view, edit and delete recipes with photos. Search, ingredient matching and URL import are planned. See [the roadmap](#roadmap).
 
-## Features (planned)
+## Features
+
+Available now:
+
+- Save recipes (title, cuisine, description, source link, your own 1 to 5 star rating, ingredients and steps) in a local SQLite database
+- Add a photo to each recipe: JPEG, PNG or WebP up to 5 MB, stored as a WebP file on disk with location and camera data removed
+- Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes
+- Everything open source, no accounts, no telemetry, no paid services
+
+Planned:
 
 - Search recipes by name and cuisine, sorted by your own rating
 - **Ingredient search**: find recipes you can make from a subset of ingredients, ranked by overlap
-- Save recipes in a local SQLite database, with their images stored as files on disk
 - Import recipes from a URL using the page's standard `schema.org` recipe data
-- Modern, fast UI (React, Tailwind CSS, shadcn/ui) with light and dark themes
-- Everything open source, no accounts, no telemetry, no paid services
 
 ## Quick start
 
@@ -61,7 +67,7 @@ Settings come from environment variables (see [`.env.example`](.env.example)). N
 
 ### Backups
 
-Everything you save is in `DATA_DIR` (the Docker volume `recipemixer-data`). Copy that folder, with the server stopped, to back it up.
+Everything you save is in `DATA_DIR` (the Docker volume `recipemixer-data`): the database file `recipemixer.db` and the `images/` folder. Copy that folder, with the server stopped, to back it up.
 
 ## Project layout
 
@@ -74,6 +80,22 @@ Useful commands: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build
 
 To scan for secrets before committing, install [gitleaks](https://github.com/gitleaks/gitleaks) and enable the hook: `git config core.hooksPath .githooks`.
 
+## API
+
+JSON over HTTP on the same port as the web app. Errors look like `{"error": "message"}`.
+
+| Method and path | Purpose |
+|---|---|
+| `GET /api/health` | Server and database status |
+| `GET /api/recipes?limit=24&offset=0` | List recipes, newest first (`limit` 1 to 100) |
+| `POST /api/recipes` | Create a recipe |
+| `GET /api/recipes/:id` | Get one recipe with ingredients and steps |
+| `PUT /api/recipes/:id` | Replace a recipe |
+| `DELETE /api/recipes/:id` | Delete a recipe and its image file (if no other recipe uses it) |
+| `PUT /api/recipes/:id/image` | Upload an image as `multipart/form-data`, field name `image` |
+| `DELETE /api/recipes/:id/image` | Remove a recipe's image |
+| `GET /api/images/:filename` | Serve a stored image (content-hash filenames only) |
+
 ## Security and privacy
 
 See [SECURITY.md](SECURITY.md). In short: your recipes and images stay on your machine, nothing is sent to third parties, and this repository never contains user data (databases, images and `.env` files are git-ignored).
@@ -84,8 +106,8 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 
 ## Roadmap
 
-1. Foundation and security scaffold (this phase)
-2. Recipes and images
+1. Foundation and security scaffold (done)
+2. Recipes and images (done)
 3. Name, cuisine and rating search
 4. Ingredient matching
 5. URL import with SSRF protection

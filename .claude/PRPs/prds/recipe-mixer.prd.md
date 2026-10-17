@@ -152,7 +152,7 @@ Add a recipe by hand or by URL, then type ingredients and see ranked matches wit
 | # | Phase | Description | Status | Parallel | Depends | PRP Plan |
 |---|-------|-------------|--------|----------|---------|----------|
 | 1 | Foundation & security scaffold | Repo, licence, TS monorepo, Docker/compose, CI, gitleaks, SQLite schema, server skeleton, UI shell | complete | - | - | [plan](../plans/completed/foundation-security-scaffold.plan.md), [report](../reports/foundation-security-scaffold-report.md) |
-| 2 | Recipes & images | Recipe CRUD, manual entry, image upload/storage on disk | pending | - | 1 | - |
+| 2 | Recipes & images | Recipe CRUD, manual entry, image upload/storage on disk | complete | - | 1 | [plan](../plans/completed/recipes-and-images.plan.md), [report](../reports/recipes-and-images-report.md) |
 | 3 | Name/cuisine/rating search | FTS5 search, cuisine filter, rating sort, own star ratings | pending | with 4, 5 | 2 | - |
 | 4 | Ingredient matching | Ingredient parser/normaliser, ranking by overlap, missing list, benchmark | pending | with 3, 5 | 2 | - |
 | 5 | URL import | JSON-LD import, image download, SSRF hardening and tests | pending | with 3, 4 | 2 | - |
