@@ -9,6 +9,30 @@ export const MAX_INPUT_PIXELS = 40_000_000;
 export const MAX_EDGE = 1600;
 
 const ALLOWED_FORMATS = new Set(['jpeg', 'png', 'webp']);
+
+/**
+ * A small picture can expand to a very large bitmap while it is decoded (a 40-megapixel one needs well over
+ * 100 MB), so only a couple are decoded at the same time; the rest wait their turn.
+ */
+const MAX_CONCURRENT_DECODES = 2;
+let activeDecodes = 0;
+const waitingDecodes: Array<() => void> = [];
+
+async function withDecodeSlot<T>(work: () => Promise<T>): Promise<T> {
+  if (activeDecodes < MAX_CONCURRENT_DECODES) {
+    activeDecodes += 1;
+  } else {
+    // The slot is handed over directly by the call that finishes, so the count stays accurate.
+    await new Promise<void>((resolve) => waitingDecodes.push(resolve));
+  }
+  try {
+    return await work();
+  } finally {
+    const next = waitingDecodes.shift();
+    if (next) next();
+    else activeDecodes -= 1;
+  }
+}
 const IMAGE_FILENAME = /^[a-f0-9]{64}\.webp$/;
 
 export function isValidImageFilename(filename: string): boolean {
@@ -42,32 +66,36 @@ export async function processImage(
     throw unsupportedMediaType('Only JPEG, PNG and WebP images are supported');
   }
 
-  const image = sharp(input, {
-    limitInputPixels: options.maxInputPixels ?? MAX_INPUT_PIXELS,
-    failOn: 'error',
-    animated: false,
+  const data = await withDecodeSlot(async () => {
+    const image = sharp(input, {
+      limitInputPixels: options.maxInputPixels ?? MAX_INPUT_PIXELS,
+      failOn: 'error',
+      animated: false,
+      // (Reading is sequential by default; stated here so it stays that way. Memory is bounded by the pixel limit above
+      // and by the two-at-a-time limit on decoding, not by this.)
+      sequentialRead: true,
+    });
+
+    let format: string | undefined;
+    try {
+      format = (await image.metadata()).format;
+    } catch {
+      throw badRequest(CORRUPT);
+    }
+    if (!format || !ALLOWED_FORMATS.has(format)) {
+      throw unsupportedMediaType('Only JPEG, PNG and WebP images are supported');
+    }
+
+    try {
+      return await image
+        .rotate()
+        .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+    } catch {
+      throw badRequest(CORRUPT);
+    }
   });
-
-  let format: string | undefined;
-  try {
-    format = (await image.metadata()).format;
-  } catch {
-    throw badRequest(CORRUPT);
-  }
-  if (!format || !ALLOWED_FORMATS.has(format)) {
-    throw unsupportedMediaType('Only JPEG, PNG and WebP images are supported');
-  }
-
-  let data: Buffer;
-  try {
-    data = await image
-      .rotate()
-      .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 82 })
-      .toBuffer();
-  } catch {
-    throw badRequest(CORRUPT);
-  }
 
   return { data, filename: `${createHash('sha256').update(data).digest('hex')}.webp` };
 }

@@ -3,7 +3,8 @@ import { Badge } from '@/components/ui/badge';
 
 interface Health {
   status: string;
-  schemaVersion: number;
+  /** Left out by the server for a caller who is not logged in. */
+  schemaVersion?: number;
 }
 
 type HealthState = { kind: 'loading' } | { kind: 'ok'; health: Health } | { kind: 'error' };
@@ -32,7 +33,10 @@ export function ServerStatus() {
       </Badge>
       <p role="status">
         {state.kind === 'loading' && 'Checking server...'}
-        {state.kind === 'ok' && `Server is running (database schema v${state.health.schemaVersion}).`}
+        {state.kind === 'ok' &&
+          (state.health.schemaVersion === undefined
+            ? 'Server is running.'
+            : `Server is running (database schema v${state.health.schemaVersion}).`)}
         {state.kind === 'error' && 'Cannot reach the server.'}
       </p>
     </div>

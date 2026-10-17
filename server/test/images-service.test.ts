@@ -151,3 +151,30 @@ describe('createImageStore', () => {
     await expect(store.exists(bad)).rejects.toThrow();
   });
 });
+
+describe('processImage under load', () => {
+  it('finishes many decodes started at once, good and bad together, with the right outcome for each', async () => {
+    const good = await png(40, 30);
+    const corrupt = Buffer.concat([good.subarray(0, 40), Buffer.alloc(200, 7)]);
+
+    const settled = await Promise.allSettled([
+      ...Array.from({ length: 8 }, () => processImage(good)),
+      ...Array.from({ length: 8 }, () => processImage(corrupt)),
+      ...Array.from({ length: 4 }, () => processImage(Buffer.from('not an image at all'))),
+    ]);
+
+    expect(settled.slice(0, 8).every((result) => result.status === 'fulfilled')).toBe(true);
+    expect(settled.slice(8).every((result) => result.status === 'rejected')).toBe(true);
+  });
+
+  it('does not lose a decode slot when decodes fail, so later batches still run', async () => {
+    const good = await png(20, 20);
+    const corrupt = Buffer.concat([good.subarray(0, 40), Buffer.alloc(200, 9)]);
+
+    for (let round = 0; round < 3; round++) {
+      await Promise.allSettled(Array.from({ length: 6 }, () => processImage(corrupt)));
+    }
+    const after = await Promise.all(Array.from({ length: 6 }, () => processImage(good)));
+    expect(after.every((result) => /^[a-f0-9]{64}\.webp$/.test(result.filename))).toBe(true);
+  });
+});

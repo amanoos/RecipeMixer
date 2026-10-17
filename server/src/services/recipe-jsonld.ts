@@ -12,22 +12,29 @@ const MAX_NODES = 5000;
 const MAX_DEPTH = 6;
 const MAX_ITEMS = 100;
 const RAW_TEXT_LIMIT = 20_000;
+/** How many entries of a list are looked at, however many of them turn out to be empty. */
+const MAX_SCANNED_ITEMS = 500;
 
 // Limits mirror recipeInputSchema so a draft always fits the form.
 const LIMITS = { title: 200, cuisine: 80, description: 5000, ingredient: 200, step: 2000 } as const;
 
 const SCRIPT_START = /<script\b/gi;
 const SCRIPT_END = /<\/script\s*>/gi;
-const LD_JSON_TYPE = /\btype\s*=\s*["']?\s*application\/ld\+json/i;
+// Whitespace is collapsed before this is tested, so it has no neighbouring "\s*" parts that could be split in many ways.
+const LD_JSON_TYPE = /\btype ?= ?["']? ?application\/ld\+json/i;
+/** How many script tags are looked at in all, whether or not they turn out to hold JSON-LD. */
+const MAX_SCRIPT_TAGS = 300;
 
 /** Finds the contents of every JSON-LD script element. Each search moves forward only, so it is linear. */
 function jsonLdBlocks(html: string): string[] {
   const blocks: string[] = [];
+  let scanned = 0;
   SCRIPT_START.lastIndex = 0;
 
-  while (blocks.length < MAX_BLOCKS) {
+  while (blocks.length < MAX_BLOCKS && scanned < MAX_SCRIPT_TAGS) {
     const start = SCRIPT_START.exec(html);
     if (!start) break;
+    scanned += 1;
 
     const tagEnd = html.indexOf('>', start.index);
     if (tagEnd === -1) break;
@@ -37,7 +44,7 @@ function jsonLdBlocks(html: string): string[] {
     if (!end) break;
 
     const attributes = html.slice(start.index + 7, tagEnd);
-    if (attributes.length <= 500 && LD_JSON_TYPE.test(attributes)) {
+    if (attributes.length <= 500 && LD_JSON_TYPE.test(attributes.replace(/\s+/g, ' '))) {
       blocks.push(html.slice(tagEnd + 1, end.index));
     }
     SCRIPT_START.lastIndex = end.index + end[0].length;
@@ -80,8 +87,13 @@ function cleanText(value: unknown): string {
   if (typeof value !== 'string') return '';
   const withBreaks = value
     .slice(0, RAW_TEXT_LIMIT)
-    .replace(/<\s*br\s*\/?\s*>|<\/\s*(?:p|li|div)\s*>/gi, '\n')
-    .replace(/<[^>]{0,500}>/g, ' ');
+    // One pass over the tags: a line break or paragraph end becomes a newline, every other tag a space.
+    // [^<>]* cannot run past the next '<', so every character is looked at once however many stray '<' there are,
+    // and the tag's inner text is checked after its whitespace is removed, so long runs of spaces cost nothing extra.
+    .replace(/<[^<>]*>/g, (tag) => {
+      const inner = tag.slice(1, -1).replace(/\s+/g, '').toLowerCase();
+      return inner === 'br' || inner === 'br/' || inner === '/p' || inner === '/li' || inner === '/div' ? '\n' : ' ';
+    });
   return decodeEntities(withBreaks)
     .split(/\r?\n/)
     .map((line) => line.replace(/\s+/g, ' ').trim())
@@ -116,7 +128,9 @@ function findRecipe(root: unknown): Record<string, unknown> | null {
     seen += 1;
 
     if (Array.isArray(value)) {
-      if (depth < MAX_DEPTH) for (const item of value.slice(0, MAX_NODES)) queue.push({ value: item, depth: depth + 1 });
+      if (depth < MAX_DEPTH) {
+        for (const item of value.slice(0, Math.max(0, MAX_NODES - queue.length))) queue.push({ value: item, depth: depth + 1 });
+      }
       continue;
     }
     if (!isObject(value)) continue;
@@ -130,7 +144,7 @@ function findRecipe(root: unknown): Record<string, unknown> | null {
 }
 
 function textList(value: unknown, max: number): string[] {
-  const items = typeof value === 'string' ? value.split(/\r?\n/) : Array.isArray(value) ? value : [];
+  const items = (typeof value === 'string' ? value.split(/\r?\n/) : Array.isArray(value) ? value : []).slice(0, MAX_SCANNED_ITEMS);
   const out: string[] = [];
   for (const item of items) {
     const line = clip(cleanLine(item), max);
@@ -150,7 +164,7 @@ function collectSteps(value: unknown, out: string[], depth = 0): void {
       if (step && out.length < MAX_ITEMS) out.push(step);
     }
   } else if (Array.isArray(value)) {
-    for (const item of value.slice(0, MAX_ITEMS)) collectSteps(item, out, depth + 1);
+    for (const item of value.slice(0, MAX_SCANNED_ITEMS)) collectSteps(item, out, depth + 1);
   } else if (isObject(value)) {
     if (value.itemListElement !== undefined) {
       collectSteps(value.itemListElement, out, depth + 1);

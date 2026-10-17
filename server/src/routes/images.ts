@@ -13,7 +13,8 @@ export const imageRoutes: FastifyPluginAsync<{ images: ImageStore }> = async (ap
     }
     return reply
       .header('Content-Type', 'image/webp')
-      .header('Cache-Control', 'public, max-age=31536000, immutable')
+      // "private": photos are behind the login, so a shared cache (proxy or CDN) must never keep a copy.
+      .header('Cache-Control', 'private, max-age=31536000, immutable')
       .send(fs.createReadStream(images.pathFor(filename)));
   });
 };

@@ -230,6 +230,90 @@ describe('extractRecipe', () => {
       expect(Date.now() - started).toBeLessThan(2000);
     });
 
+    it.each([
+      ['a run of "<" in every field', '<'.repeat(20_000)],
+      ['"<a" repeated', '<a'.repeat(10_000)],
+      ['"< " repeated', '< '.repeat(10_000)],
+      ['"<br" repeated', '<br'.repeat(6_000)],
+    ])('is not slowed down by a page that is mostly %s (about 2 MB)', (_name, piece) => {
+      const json = JSON.stringify({
+        '@type': 'Recipe',
+        name: 'x',
+        description: piece,
+        recipeIngredient: Array.from({ length: 100 }, () => piece),
+        recipeInstructions: Array.from({ length: 100 }, () => piece),
+      });
+      const html = page(ld(json));
+      expect(html.length).toBeGreaterThan(1_500_000);
+      const started = Date.now();
+      extractRecipe(html, PAGE);
+      // this input once took about five seconds; the limit is loose so a slow machine does not fail it
+      expect(Date.now() - started).toBeLessThan(1500);
+    });
+
+    it.each([
+      ['"<br" followed by spaces', '<br' + ' '.repeat(19_990)],
+      ['"<br" with a slash between two runs of spaces', '<br' + ' '.repeat(9_990) + '/' + ' '.repeat(9_990)],
+      ['"</p" followed by spaces', '</p' + ' '.repeat(19_990)],
+      ['"< br" followed by spaces', '< br' + ' '.repeat(19_980)],
+    ])('is not slowed down by a page that is mostly %s (about 2 MB)', (_name, piece) => {
+      const json = JSON.stringify({
+        '@type': 'Recipe',
+        name: 'x',
+        recipeIngredient: Array.from({ length: 100 }, () => piece),
+        recipeInstructions: Array.from({ length: 100 }, () => piece),
+      });
+      const started = Date.now();
+      extractRecipe(page(ld(json)), PAGE);
+      // this input once took about 44 seconds
+      expect(Date.now() - started).toBeLessThan(1500);
+    });
+
+    it('is not slowed down by thousands of script tags with long, odd attribute text', () => {
+      const tag = '<script type=' + ' '.repeat(470) + 'x>x</script>';
+      const html = tag.repeat(4_000);
+      expect(html.length).toBeGreaterThan(1_900_000);
+      const started = Date.now();
+      expect(extractRecipe(html, PAGE)).toBeNull();
+      expect(Date.now() - started).toBeLessThan(1500);
+    });
+
+    it('still finds the recipe when the type attribute has odd spacing or case', () => {
+      const json = JSON.stringify({ '@type': 'Recipe', name: 'Spaced out' });
+      for (const attrs of ['type = "application/ld+json"', 'type\t=\n"application/ld+json"', "TYPE='application/LD+JSON'", 'type=application/ld+json']) {
+        expect(extractRecipe('<script ' + attrs + '>' + json + '</script>', PAGE)?.draft.title).toBe('Spaced out');
+      }
+    });
+
+    it('gives up looking after a few hundred script tags, so a recipe hidden behind thousands is not found', () => {
+      const filler = '<script>1</script>'.repeat(2_000);
+      expect(extractRecipe(page(filler, ld({ '@type': 'Recipe', name: 'Too late' })), PAGE)).toBeNull();
+    });
+
+    it('turns <br> and paragraph ends into line breaks even with odd spacing and case', () => {
+      const result = extractRecipe(
+        page(ld({ '@type': 'Recipe', name: 'R', recipeInstructions: 'One<BR>Two< br />Three<  /p  >Four</ LI>Five<div>Six' })),
+        PAGE,
+      )!;
+      expect(result.draft.steps).toEqual(['One', 'Two', 'Three', 'Four', 'Five Six']);
+    });
+
+    it('looks at only the first few hundred entries of a list, however many are empty', () => {
+      const entries = [...Array.from({ length: 100_000 }, () => ''), 'a real ingredient'];
+      const started = Date.now();
+      const result = extractRecipe(page(ld({ '@type': 'Recipe', name: 'x', recipeIngredient: entries, recipeInstructions: entries })), PAGE)!;
+      expect(Date.now() - started).toBeLessThan(1500);
+      expect(result.draft.ingredients).toEqual([]);
+      expect(result.draft.steps).toEqual([]);
+    });
+
+    it('does not let many large arrays swell the search queue', () => {
+      const arrays = Array.from({ length: 190 }, () => Array.from({ length: 5000 }, () => 0));
+      const started = Date.now();
+      expect(extractRecipe(page(ld({ '@type': 'Thing', parts: arrays, mainEntity: arrays })), PAGE)).toBeNull();
+      expect(Date.now() - started).toBeLessThan(1500);
+    });
+
     it('ignores only a few blocks beyond the cap', () => {
       const filler = Array.from({ length: 60 }, () => ld({ '@type': 'Thing' }));
       expect(extractRecipe(page(...filler, ld(soup)), PAGE)).toBeNull();

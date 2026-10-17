@@ -1,6 +1,9 @@
+import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
+import { checkPasswordStrength, GENERATE_PASSWORD_HINT } from './services/password.js';
 
 const LOG_LEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'] as const;
 
@@ -13,10 +16,23 @@ export interface Config {
   webDist: string;
   logLevel: (typeof LOG_LEVELS)[number];
   allowInsecureNoAuth: boolean;
+  /** The shared password that protects the API and the photos, or null when login is off. Never logged. */
+  appPassword: string | null;
+  /**
+   * The addresses (IPs or CIDR ranges) of the reverse proxies allowed to say who the real client is, or false for
+   * none. Only a request that arrives from one of these has its X-Forwarded-For and X-Forwarded-Proto believed.
+   */
+  trustProxy: false | string[];
+  /** "always" forces the Secure flag on the login cookie; "auto" sets it when the request arrived over HTTPS. */
+  cookieSecure: 'auto' | 'always';
+  /** Extra host names the app may be reached by when login is off (loopback names are always allowed). */
+  allowedHosts: string[];
   /** Whether the server may fetch recipe pages and images from user-supplied URLs. */
   urlImportEnabled: boolean;
   isProduction: boolean;
 }
+
+const HOST_NAME = /^(?:[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?|\[[0-9a-f:]+\])$/;
 
 const envSchema = z.object({
   HOST: z.string().trim().min(1).default('127.0.0.1'),
@@ -28,6 +44,12 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
+  // Present-but-empty is rejected on purpose: an empty value must never silently mean "no password".
+  APP_PASSWORD: z.string().optional(),
+  APP_PASSWORD_FILE: z.string().optional(),
+  TRUST_PROXY: z.string().trim().optional(),
+  COOKIE_SECURE: z.enum(['auto', 'true']).default('auto'),
+  ALLOWED_HOSTS: z.string().optional(),
   URL_IMPORT_ENABLED: z
     .enum(['true', 'false'])
     .default('true')
@@ -45,6 +67,85 @@ export function isLoopbackHost(host: string): boolean {
 // server/src/config.ts and server/dist/config.js are both two levels below the repo root.
 const defaultWebDist = fileURLToPath(new URL('../../web/dist', import.meta.url));
 
+function fail(message: string): never {
+  throw new Error(message);
+}
+
+/** Reads the password from APP_PASSWORD or from the file named by APP_PASSWORD_FILE (for Docker and cloud secrets). */
+function readPassword(values: { APP_PASSWORD?: string | undefined; APP_PASSWORD_FILE?: string | undefined }): string | null {
+  const { APP_PASSWORD: direct, APP_PASSWORD_FILE: file } = values;
+  if (direct !== undefined && file !== undefined) {
+    fail('Set either APP_PASSWORD or APP_PASSWORD_FILE, not both.');
+  }
+
+  let password: string;
+  if (file !== undefined) {
+    if (file.trim() === '') fail('APP_PASSWORD_FILE is set but empty. Remove it, or give the path of a file that holds the password.');
+    try {
+      // Secrets files usually end with a newline that is not part of the password.
+      password = fs.readFileSync(file.trim(), 'utf8').replace(/[\r\n]+$/, '');
+    } catch (err) {
+      fail(`Could not read APP_PASSWORD_FILE (${(err as NodeJS.ErrnoException).code ?? 'unknown error'}).`);
+    }
+  } else if (direct !== undefined) {
+    password = direct;
+  } else {
+    return null;
+  }
+
+  if (password === '') {
+    fail('The app password is set but empty. Remove the setting to run without a password, or set a strong one.');
+  }
+  const weakness = checkPasswordStrength(password);
+  if (weakness) {
+    fail(
+      `The app password ${weakness}. Use at least 12 characters that are hard to guess. ` +
+        `To make a good one, run: ${GENERATE_PASSWORD_HINT}`,
+    );
+  }
+  return password;
+}
+
+const PROXY_KEYWORDS = new Set(['loopback', 'linklocal', 'uniquelocal']);
+
+function isProxyAddress(entry: string): boolean {
+  if (PROXY_KEYWORDS.has(entry)) return true;
+  const [address, prefix, ...rest] = entry.split('/');
+  const version = net.isIP(address ?? '');
+  if (version === 0 || rest.length > 0) return false;
+  if (prefix === undefined) return true;
+  return /^\d{1,3}$/.test(prefix) && Number(prefix) <= (version === 4 ? 32 : 128);
+}
+
+/** TRUST_PROXY: "false", or the proxy's own address(es) as IPs, CIDR ranges or loopback/linklocal/uniquelocal. */
+function readTrustProxy(raw: string | undefined): false | string[] {
+  if (raw === undefined || raw === '' || raw.toLowerCase() === 'false') return false;
+  const entries = raw
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+  if (entries.length === 0 || !entries.every(isProxyAddress)) {
+    fail(
+      'TRUST_PROXY must be "false" or the address of your reverse proxy: an IP or a CIDR range such as 172.30.0.0/24 ' +
+        '(or loopback), comma-separated for several. "true" and plain numbers are refused because they let a client ' +
+        'that reaches the app directly fake its address and dodge the login limits.',
+    );
+  }
+  return entries;
+}
+
+function readAllowedHosts(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const hosts = raw
+    .split(',')
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+  for (const host of hosts) {
+    if (!HOST_NAME.test(host)) fail('ALLOWED_HOSTS must be a comma-separated list of host names without ports or paths.');
+  }
+  return hosts;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
@@ -55,13 +156,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   const values = parsed.data;
 
-  // There is no authentication yet (planned for a later phase), so APP_PASSWORD-style
-  // settings must NOT satisfy this guard: only an explicit opt-in lets the server
-  // listen beyond loopback, e.g. inside a container whose port is published on 127.0.0.1 only.
-  if (!isLoopbackHost(values.HOST) && !values.ALLOW_INSECURE_NO_AUTH) {
+  const appPassword = readPassword(values);
+
+  // Listening beyond loopback needs either a password or an explicit opt-in. The opt-in exists for setups
+  // such as Docker, where the container listens on 0.0.0.0 but the port is published on 127.0.0.1 only.
+  if (!isLoopbackHost(values.HOST) && appPassword === null && !values.ALLOW_INSECURE_NO_AUTH) {
     throw new Error(
-      `Refusing to bind to "${values.HOST}" without authentication. ` +
-        'Use HOST=127.0.0.1, or set ALLOW_INSECURE_NO_AUTH=true only if the port is otherwise protected.',
+      `Refusing to bind to "${values.HOST}" without a password. ` +
+        `Set APP_PASSWORD (or APP_PASSWORD_FILE) to a strong password, e.g. one made by: ${GENERATE_PASSWORD_HINT} ` +
+        'Or use HOST=127.0.0.1. Set ALLOW_INSECURE_NO_AUTH=true only if the port is otherwise protected.',
     );
   }
 
@@ -75,6 +178,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     webDist: path.resolve(values.WEB_DIST ?? defaultWebDist),
     logLevel: values.LOG_LEVEL,
     allowInsecureNoAuth: values.ALLOW_INSECURE_NO_AUTH,
+    appPassword,
+    trustProxy: readTrustProxy(values.TRUST_PROXY),
+    cookieSecure: values.COOKIE_SECURE === 'true' ? 'always' : 'auto',
+    allowedHosts: readAllowedHosts(values.ALLOWED_HOSTS),
     urlImportEnabled: values.URL_IMPORT_ENABLED,
     isProduction: values.NODE_ENV === 'production',
   };
