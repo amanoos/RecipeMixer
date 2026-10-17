@@ -5,8 +5,10 @@ import {
   deleteImage,
   deleteRecipe,
   getRecipe,
+  listCuisines,
   listRecipes,
   matchRecipes,
+  setRating,
   suggestIngredients,
   updateRecipe,
   uploadImage,
@@ -111,6 +113,47 @@ describe('api client', () => {
     const [url, init] = mock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('/api/recipes/2/image');
     expect(init.method).toBe('DELETE');
+  });
+});
+
+describe('search api', () => {
+  it('sends only the options that were given', async () => {
+    const mock = stubFetch(ok({ items: [], total: 0 }));
+    await listRecipes({ q: 'tomato soup', cuisine: 'Italian', minRating: 4, sort: 'rating', limit: 10, offset: 20 });
+    await listRecipes({ q: '', cuisine: '' });
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/recipes?limit=10&offset=20&q=tomato+soup&cuisine=Italian&minRating=4&sort=rating');
+    expect(mock.mock.calls[1]?.[0]).toBe('/api/recipes?limit=24&offset=0');
+  });
+
+  it('encodes search text so it cannot change the query', async () => {
+    const mock = stubFetch(ok({ items: [], total: 0 }));
+    await listRecipes({ q: 'a&sort=title', cuisine: 'x=y#z' });
+    const url = new URL(String(mock.mock.calls[0]?.[0]), 'http://localhost');
+    expect(url.searchParams.get('q')).toBe('a&sort=title');
+    expect(url.searchParams.get('cuisine')).toBe('x=y#z');
+    expect(url.searchParams.has('sort')).toBe(false);
+  });
+
+  it('lists cuisines', async () => {
+    const mock = stubFetch(ok({ items: [{ name: 'Italian', count: 2 }] }));
+    await expect(listCuisines()).resolves.toEqual([{ name: 'Italian', count: 2 }]);
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/cuisines');
+  });
+
+  it('sets and clears a rating with a JSON body', async () => {
+    const mock = stubFetch(ok({ id: 3, rating: 5 }));
+    await setRating(3, 5);
+    await setRating(3, null);
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/recipes/3/rating');
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({ rating: 5 });
+    expect(JSON.parse((mock.mock.calls[1]?.[1] as RequestInit).body as string)).toEqual({ rating: null });
+  });
+
+  it('maps a rejected rating to an ApiError', async () => {
+    stubFetch(fail(400, { error: 'Invalid rating: too big' }));
+    await expect(setRating(3, 5)).rejects.toMatchObject({ status: 400, message: 'Invalid rating: too big' });
   });
 });
 

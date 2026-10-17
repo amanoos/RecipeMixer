@@ -30,6 +30,13 @@ export interface RecipeList {
   total: number;
 }
 
+export type SortOrder = 'relevance' | 'newest' | 'rating' | 'title';
+
+export interface Cuisine {
+  name: string;
+  count: number;
+}
+
 export interface MatchItem {
   recipe: RecipeSummary;
   matchedCount: number;

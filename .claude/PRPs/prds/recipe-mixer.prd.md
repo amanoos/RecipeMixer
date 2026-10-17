@@ -153,7 +153,7 @@ Add a recipe by hand or by URL, then type ingredients and see ranked matches wit
 |---|-------|-------------|--------|----------|---------|----------|
 | 1 | Foundation & security scaffold | Repo, licence, TS monorepo, Docker/compose, CI, gitleaks, SQLite schema, server skeleton, UI shell | complete | - | - | [plan](../plans/completed/foundation-security-scaffold.plan.md), [report](../reports/foundation-security-scaffold-report.md) |
 | 2 | Recipes & images | Recipe CRUD, manual entry, image upload/storage on disk | complete | - | 1 | [plan](../plans/completed/recipes-and-images.plan.md), [report](../reports/recipes-and-images-report.md) |
-| 3 | Name/cuisine/rating search | FTS5 search, cuisine filter, rating sort, own star ratings | pending | with 4, 5 | 2 | - |
+| 3 | Name/cuisine/rating search | FTS5 search, cuisine filter, rating sort, own star ratings | complete | with 4, 5 | 2 | [plan](../plans/completed/recipe-search.plan.md), [report](../reports/recipe-search-report.md) |
 | 4 | Ingredient matching | Ingredient parser/normaliser, ranking by overlap, missing list, benchmark | complete | with 3, 5 | 2 | [plan](../plans/completed/ingredient-matching.plan.md), [report](../reports/ingredient-matching-report.md) |
 | 5 | URL import | JSON-LD import, image download, SSRF hardening and tests | pending | with 3, 4 | 2 | - |
 | 6 | UI polish | Ingredient chips, search-as-you-type, recipe cards, dark mode, responsive layout, accessibility | pending | - | 3, 4 | - |
