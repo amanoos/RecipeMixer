@@ -6,8 +6,10 @@ import { MatchPage } from '@/pages/MatchPage';
 import { RecipeDetailPage } from '@/pages/RecipeDetailPage';
 import { RecipeFormPage } from '@/pages/RecipeFormPage';
 import { RecipeListPage } from '@/pages/RecipeListPage';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 function NotFoundPage() {
+  useDocumentTitle('Page not found');
   return (
     <div className="space-y-3 py-16 text-center">
       <h1 className="text-xl font-semibold">Page not found</h1>

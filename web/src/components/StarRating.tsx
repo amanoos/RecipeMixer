@@ -9,11 +9,11 @@ interface StarRatingProps {
 
 const STARS = [1, 2, 3, 4, 5];
 
-function StarIcon({ filled }: { filled: boolean }) {
+function StarIcon({ filled, interactive = false }: { filled: boolean; interactive?: boolean }) {
   return (
     <Star
       aria-hidden="true"
-      className={cn('size-4', filled ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground')}
+      className={cn('size-4', interactive && 'pointer-coarse:size-5', filled ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground')}
     />
   );
 }
@@ -42,9 +42,9 @@ export function StarRating({ value, onChange }: StarRatingProps) {
           aria-label={`Rate ${n} out of 5`}
           aria-pressed={value === n}
           onClick={() => onChange(value === n ? null : n)}
-          className="rounded p-0.5 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="rounded p-0.5 pointer-coarse:p-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          <StarIcon filled={value !== null && n <= value} />
+          <StarIcon filled={value !== null && n <= value} interactive />
         </button>
       ))}
     </div>

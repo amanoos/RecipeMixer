@@ -8,6 +8,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, deleteRecipe, getRecipe, setRating } from '@/lib/api';
 import type { RecipeDetail } from '@/lib/types';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 // Only real web links are rendered as links; anything else is shown as plain text.
 const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
@@ -23,6 +24,7 @@ export function RecipeDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [ratingError, setRatingError] = useState<string | null>(null);
+  useDocumentTitle(recipe?.title ?? (state === 'missing' ? 'Recipe not found' : 'Recipe'));
 
   useEffect(() => {
     if (!Number.isInteger(recipeId) || recipeId < 1) {
@@ -68,7 +70,19 @@ export function RecipeDetailPage() {
   }
 
   if (state === 'loading') {
-    return <Skeleton className="h-96 w-full" aria-busy="true" aria-label="Loading recipe" />;
+    return (
+      <div className="space-y-6" aria-busy="true" aria-label="Loading recipe">
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
   }
 
   if (state === 'missing') {
@@ -97,6 +111,9 @@ export function RecipeDetailPage() {
           <img
             src={recipe.imageUrl}
             alt={`Photo of ${recipe.title}`}
+            width={800}
+            height={600}
+            fetchPriority="high"
             className="aspect-[4/3] w-full rounded-xl object-cover"
           />
         ) : (

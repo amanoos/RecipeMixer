@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 
 // jsdom does not implement the modal parts of <dialog>; emulate just enough for tests.
 if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.showModal) {
@@ -11,6 +11,9 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
     this.removeAttribute('open');
   };
 }
+
+// jsdom does not implement window scrolling.
+window.scrollTo = vi.fn();
 
 afterEach(() => {
   cleanup();

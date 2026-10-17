@@ -114,7 +114,7 @@ export function IngredientChips({ value, onChange, max = MAX_INGREDIENTS, sugges
               type="button"
               aria-label={`Remove ${item}`}
               onClick={() => onChange(value.filter((existing) => existing !== item))}
-              className="rounded-full p-0.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="rounded-full p-0.5 pointer-coarse:p-3 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X aria-hidden="true" className="size-3.5" />
             </button>
@@ -130,7 +130,7 @@ export function IngredientChips({ value, onChange, max = MAX_INGREDIENTS, sugges
           autoComplete="off"
           aria-describedby={`${inputId}-help`}
           placeholder={value.length === 0 ? 'chicken, rice, spinach...' : ''}
-          className="min-w-40 flex-1 bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground"
+          className="min-w-40 flex-1 bg-transparent px-1 py-1 pointer-coarse:py-3 text-sm outline-none placeholder:text-muted-foreground"
         />
         <datalist id={listId}>
           {suggestions.map((name) => (

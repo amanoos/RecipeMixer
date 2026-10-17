@@ -1,24 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { CookingPot } from 'lucide-react';
+import { CardGridSkeleton } from '@/components/CardGridSkeleton';
+import { imagePriority } from '@/components/CardImage';
 import { IngredientChips } from '@/components/IngredientChips';
 import { MatchCard } from '@/components/MatchCard';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { matchRecipes } from '@/lib/api';
 import type { MatchResult } from '@/lib/types';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 /**
  * "What can I cook?": the ingredients and the staples switch live in the URL (?i=chicken&i=rice&staples=0),
  * so a search survives going to a recipe and pressing back, and can be bookmarked.
  */
 export function MatchPage() {
+  useDocumentTitle('What can I cook?');
   const [params, setParams] = useSearchParams();
   const ingredients = useMemo(() => params.getAll('i'), [params]);
   const staples = params.get('staples') !== '0';
 
   const [result, setResult] = useState<MatchResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  // A page opened with ingredients already in the address starts out loading, so it never flashes empty first.
+  const [loading, setLoading] = useState(() => ingredients.length > 0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -116,11 +121,7 @@ function Results({ hasIngredients, result, loading, loadingMore, failed, onRetry
 
   if (loading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Finding recipes">
-        {[0, 1, 2].map((n) => (
-          <Skeleton key={n} className="h-64 w-full" />
-        ))}
-      </div>
+      <CardGridSkeleton label="Finding recipes" />
     );
   }
 
@@ -146,7 +147,8 @@ function Results({ hasIngredients, result, loading, loadingMore, failed, onRetry
       )}
 
       {result.items.length === 0 ? (
-        <div className="space-y-3 py-8 text-center">
+        <div className="flex flex-col items-center gap-3 py-8 text-center">
+          <CookingPot aria-hidden="true" className="size-8 text-muted-foreground" />
           <p className="font-medium">Nothing close yet.</p>
           <p className="text-sm text-muted-foreground">Try fewer ingredients, or add more recipes.</p>
           <Link to="/recipes/new" className={buttonVariants({ variant: 'outline' })}>
@@ -159,9 +161,9 @@ function Results({ hasIngredients, result, loading, loadingMore, failed, onRetry
             {result.total} {result.total === 1 ? 'recipe' : 'recipes'} you could make or nearly make
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {result.items.map((item) => (
+            {result.items.map((item, index) => (
               <li key={item.recipe.id}>
-                <MatchCard item={item} />
+                <MatchCard item={item} priority={imagePriority(index)} />
               </li>
             ))}
           </ul>

@@ -17,6 +17,7 @@ import {
 } from '@/lib/api';
 import { hostOf, readImportPreview } from '@/lib/import-preview';
 import type { RecipeInput } from '@/lib/types';
+import { useDocumentTitle } from '@/lib/use-document-title';
 
 /** One entry per line; blank lines are dropped. */
 const toLines = (text: string): string[] =>
@@ -32,6 +33,7 @@ export function RecipeFormPage() {
   const navigate = useNavigate();
   const editId = id !== undefined ? Number(id) : null;
   const isEdit = editId !== null;
+  useDocumentTitle(isEdit ? 'Edit recipe' : 'New recipe');
   const location = useLocation();
   // A recipe read from a link arrives through router state; it only pre-fills a new recipe.
   const [imported] = useState(() => (editId === null ? readImportPreview(location.state) : null));

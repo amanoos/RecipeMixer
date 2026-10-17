@@ -12,9 +12,11 @@
     "test": "vitest run",
     "bench": "vitest run --config vitest.bench.config.ts",
     "eval:matching": "tsx scripts/eval-matching.ts",
-    "eval:import": "tsx scripts/eval-import.ts"
+    "eval:import": "tsx scripts/eval-import.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
+    "@fastify/compress": "^9.2.2",
     "@fastify/helmet": "^13.2.0",
     "@fastify/multipart": "^10.1.4",
     "@fastify/rate-limit": "^11.2.1",
