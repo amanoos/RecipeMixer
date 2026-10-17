@@ -30,7 +30,7 @@ describe('RecipeDetailPage', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Tomato soup' })).toBeInTheDocument();
     expect(screen.getByText('Warm and simple.')).toBeInTheDocument();
     expect(screen.getByAltText('Photo of Tomato soup')).toHaveAttribute('src', '/api/images/a.webp');
-    expect(screen.getByRole('img', { name: 'Rated 4 out of 5' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rate 4 out of 5' })).toHaveAttribute('aria-pressed', 'true');
 
     const [ingredientList, stepList] = screen.getAllByRole('list');
     expect(within(ingredientList!).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
@@ -108,6 +108,48 @@ describe('RecipeDetailPage', () => {
 
     expect(await screen.findByText('HOME PAGE')).toBeInTheDocument();
     expect(findCall(mock, 'DELETE /api/recipes/1')).toBeDefined();
+  });
+
+  it('saves a new rating at once when a star is clicked', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/recipes/1': () => apiResponse(detail()),
+      'PATCH /api/recipes/1/rating': () => apiResponse(detail({ rating: 5 })),
+    });
+    renderAt('/recipes/1');
+
+    await user.click(await screen.findByRole('button', { name: 'Rate 5 out of 5' }));
+    expect(screen.getByRole('button', { name: 'Rate 5 out of 5' })).toHaveAttribute('aria-pressed', 'true');
+    const call = findCall(mock, 'PATCH /api/recipes/1/rating');
+    expect(JSON.parse((call?.[1] as RequestInit).body as string)).toEqual({ rating: 5 });
+  });
+
+  it('clears the rating when the current star is clicked again', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/recipes/1': () => apiResponse(detail()),
+      'PATCH /api/recipes/1/rating': () => apiResponse(detail({ rating: null })),
+    });
+    renderAt('/recipes/1');
+
+    await user.click(await screen.findByRole('button', { name: 'Rate 4 out of 5' }));
+    expect(screen.getByRole('button', { name: 'Rate 4 out of 5' })).toHaveAttribute('aria-pressed', 'false');
+    const call = findCall(mock, 'PATCH /api/recipes/1/rating');
+    expect(JSON.parse((call?.[1] as RequestInit).body as string)).toEqual({ rating: null });
+  });
+
+  it('puts the old rating back and says so when saving fails', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/recipes/1': () => apiResponse(detail()),
+      'PATCH /api/recipes/1/rating': () => apiResponse({ error: 'nope' }, 500),
+    });
+    renderAt('/recipes/1');
+
+    await user.click(await screen.findByRole('button', { name: 'Rate 2 out of 5' }));
+    expect(await screen.findByText(/could not save your rating/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rate 4 out of 5' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Rate 2 out of 5' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('keeps the recipe and shows an error when deletion fails', async () => {

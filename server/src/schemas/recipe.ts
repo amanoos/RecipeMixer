@@ -46,12 +46,32 @@ export const recipeInputSchema = z
 
 export type RecipeInput = z.output<typeof recipeInputSchema>;
 
+export const SORT_ORDERS = ['relevance', 'newest', 'rating', 'title'] as const;
+export type SortOrder = (typeof SORT_ORDERS)[number];
+
+// An empty query parameter (?q=) means "not given".
+const blankToUndefined = (value: unknown) => (typeof value === 'string' && value.trim() === '' ? undefined : value);
+
 export const listQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(24),
   offset: z.coerce.number().int().min(0).default(0),
+  q: z.preprocess(blankToUndefined, z.string().trim().max(100).optional()),
+  cuisine: z.preprocess(blankToUndefined, z.string().trim().max(80).optional()),
+  minRating: z.preprocess(blankToUndefined, z.coerce.number().int().min(1).max(5).optional()),
+  sort: z.preprocess(blankToUndefined, z.enum(SORT_ORDERS).optional()),
 });
 
-export type ListQuery = z.output<typeof listQuerySchema>;
+export interface ListQuery {
+  limit: number;
+  offset: number;
+  /** Text to search for in title, cuisine, description and ingredients. */
+  q?: string;
+  cuisine?: string;
+  minRating?: number;
+  sort?: SortOrder;
+}
+
+export const ratingInputSchema = z.object({ rating: z.number().int().min(1).max(5).nullable() }).strict();
 
 export interface RecipeSummary {
   id: number;

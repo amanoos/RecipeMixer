@@ -1,6 +1,7 @@
 import type { ListQuery, RecipeDetail, RecipeInput, RecipeSummary } from '../schemas/recipe.js';
 import type { Db } from './connection.js';
 import { createIngredientIndexer } from './ingredients.js';
+import { buildMatchExpression } from './search.js';
 
 interface RecipeRow {
   id: number;
@@ -15,6 +16,18 @@ interface RecipeRow {
 }
 
 const SUMMARY_COLUMNS = 'id, title, cuisine, rating, image_path, created_at, updated_at';
+// Qualified for queries that join the search index, which has its own title and cuisine columns.
+const RECIPE_SUMMARY_COLUMNS = SUMMARY_COLUMNS.split(', ')
+  .map((column) => `r.${column}`)
+  .join(', ');
+
+// Sort orders are fixed SQL fragments chosen in code; user input only ever picks a key, never SQL.
+const ORDER_BY = {
+  newest: 'r.created_at DESC, r.id DESC',
+  rating: 'r.rating IS NULL, r.rating DESC, r.created_at DESC, r.id DESC',
+  title: 'LOWER(r.title) ASC, r.id DESC',
+  relevance: 'bm25(recipe_fts, 10.0, 4.0, 1.0, 2.0), r.id DESC',
+} as const;
 
 const toImageUrl = (imagePath: string | null): string | null =>
   imagePath ? `/api/images/${imagePath}` : null;
@@ -80,11 +93,42 @@ export function getRecipe(db: Db, id: number): RecipeDetail | undefined {
   };
 }
 
-export function listRecipes(db: Db, { limit, offset }: ListQuery): { items: RecipeSummary[]; total: number } {
+/**
+ * Lists recipes, optionally narrowed by a text search (title, cuisine, description, ingredients),
+ * a cuisine and a minimum rating. Sorted by relevance when searching, otherwise newest first,
+ * unless `sort` says otherwise.
+ */
+export function listRecipes(db: Db, query: ListQuery): { items: RecipeSummary[]; total: number } {
+  const { limit, offset, q, cuisine, minRating, sort } = query;
+  const where: string[] = [];
+  const params: (string | number)[] = [];
+  let from = 'recipe r';
+
+  if (q !== undefined) {
+    const match = buildMatchExpression(q);
+    if (match === null) return { items: [], total: 0 };
+    from = 'recipe_fts JOIN recipe r ON r.id = recipe_fts.rowid';
+    where.push('recipe_fts MATCH ?');
+    params.push(match);
+  }
+  if (cuisine !== undefined) {
+    where.push('LOWER(r.cuisine) = LOWER(?)');
+    params.push(cuisine);
+  }
+  if (minRating !== undefined) {
+    where.push('r.rating >= ?');
+    params.push(minRating);
+  }
+
+  const clause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+  const requested = sort ?? (q !== undefined ? 'relevance' : 'newest');
+  // Relevance only exists when there is a text search.
+  const order = requested === 'relevance' && q === undefined ? ORDER_BY.newest : ORDER_BY[requested];
+
   const rows = db
-    .prepare(`SELECT ${SUMMARY_COLUMNS} FROM recipe ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`)
-    .all(limit, offset) as RecipeRow[];
-  const { total } = db.prepare('SELECT COUNT(*) AS total FROM recipe').get() as { total: number };
+    .prepare(`SELECT ${RECIPE_SUMMARY_COLUMNS} FROM ${from} ${clause} ORDER BY ${order} LIMIT ? OFFSET ?`)
+    .all(...params, limit, offset) as RecipeRow[];
+  const { total } = db.prepare(`SELECT COUNT(*) AS total FROM ${from} ${clause}`).get(...params) as { total: number };
   return { items: rows.map(toSummary), total };
 }
 
@@ -141,6 +185,14 @@ export function setRecipeImage(
     db.prepare("UPDATE recipe SET image_path = ?, updated_at = datetime('now') WHERE id = ?").run(filename, id);
     return { updated: true, previous: row.image_path };
   })();
+}
+
+/** Sets or clears (null) the user's own rating. Returns false when the recipe does not exist. */
+export function setRecipeRating(db: Db, id: number, rating: number | null): boolean {
+  const result = db
+    .prepare("UPDATE recipe SET rating = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(rating, id);
+  return result.changes > 0;
 }
 
 export function countImageReferences(db: Db, filename: string): number {

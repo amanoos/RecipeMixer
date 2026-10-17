@@ -6,7 +6,7 @@ import { StarRating } from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ApiError, deleteRecipe, getRecipe } from '@/lib/api';
+import { ApiError, deleteRecipe, getRecipe, setRating } from '@/lib/api';
 import type { RecipeDetail } from '@/lib/types';
 
 // Only real web links are rendered as links; anything else is shown as plain text.
@@ -22,6 +22,7 @@ export function RecipeDetailPage() {
   const [state, setState] = useState<LoadState>('loading');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [ratingError, setRatingError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!Number.isInteger(recipeId) || recipeId < 1) {
@@ -49,6 +50,20 @@ export function RecipeDetailPage() {
     } catch {
       setConfirming(false);
       setDeleteError('Could not delete the recipe. Please try again.');
+    }
+  }
+
+  // Saved immediately; the stars change at once and go back if the save fails.
+  async function handleRate(next: number | null) {
+    if (!recipe) return;
+    const previous = recipe.rating;
+    setRatingError(null);
+    setRecipe({ ...recipe, rating: next });
+    try {
+      await setRating(recipe.id, next);
+    } catch {
+      setRecipe((current) => (current ? { ...current, rating: previous } : current));
+      setRatingError('Could not save your rating. Please try again.');
     }
   }
 
@@ -94,8 +109,16 @@ export function RecipeDetailPage() {
           <h1 className="text-2xl font-semibold tracking-tight">{recipe.title}</h1>
           <div className="flex flex-wrap items-center gap-3">
             {recipe.cuisine && <Badge variant="secondary">{recipe.cuisine}</Badge>}
-            <StarRating value={recipe.rating} />
+            <span className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Your rating</span>
+              <StarRating value={recipe.rating} onChange={handleRate} />
+            </span>
           </div>
+          {ratingError && (
+            <p role="alert" className="text-sm text-destructive">
+              {ratingError}
+            </p>
+          )}
           {recipe.description && <p className="whitespace-pre-line text-muted-foreground">{recipe.description}</p>}
           {recipe.sourceUrl && (
             <p className="text-sm">

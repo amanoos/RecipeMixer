@@ -7,10 +7,12 @@ import {
   getRecipe,
   listRecipes,
   setRecipeImage,
+  setRecipeRating,
   updateRecipe,
 } from '../db/recipes.js';
+import { listCuisines } from '../db/search.js';
 import { badRequest, notFound, payloadTooLarge, unsupportedMediaType } from '../errors.js';
-import { listQuerySchema, parseOrThrow, recipeInputSchema } from '../schemas/recipe.js';
+import { listQuerySchema, parseOrThrow, ratingInputSchema, recipeInputSchema } from '../schemas/recipe.js';
 import { processImage, type ImageStore } from '../services/images.js';
 
 /** Ids are positive integers; anything else is simply "not found" and never reaches SQL. */
@@ -34,6 +36,15 @@ async function removeImageIfUnused(db: Db, images: ImageStore, filename: string 
 
 export const recipeRoutes: FastifyPluginAsync<{ db: Db; images: ImageStore }> = async (app, { db, images }) => {
   app.get('/api/recipes', async (req) => listRecipes(db, parseOrThrow(listQuerySchema, req.query)));
+
+  app.get('/api/cuisines', async () => ({ items: listCuisines(db) }));
+
+  app.patch<{ Params: { id: string } }>('/api/recipes/:id/rating', async (req) => {
+    const id = parseId(req.params.id);
+    const { rating } = parseOrThrow(ratingInputSchema, req.body);
+    if (!setRecipeRating(db, id, rating)) throw notFound('Recipe not found');
+    return requireRecipe(db, id);
+  });
 
   app.post('/api/recipes', async (req, reply) => {
     const input = parseOrThrow(recipeInputSchema, req.body);

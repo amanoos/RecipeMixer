@@ -1,4 +1,12 @@
-import type { IngredientSuggestion, MatchResult, RecipeDetail, RecipeInput, RecipeList } from '@/lib/types';
+import type {
+  Cuisine,
+  IngredientSuggestion,
+  MatchResult,
+  RecipeDetail,
+  RecipeInput,
+  RecipeList,
+  SortOrder,
+} from '@/lib/types';
 
 /** An error response from the server; `message` is the server's safe, user-facing text. */
 export class ApiError extends Error {
@@ -35,11 +43,36 @@ const jsonRequest = (method: string, body: unknown): RequestInit => ({
   body: JSON.stringify(body),
 });
 
-export function listRecipes(
-  options: { limit?: number; offset?: number; signal?: AbortSignal } = {},
-): Promise<RecipeList> {
-  const { limit = 24, offset = 0, signal } = options;
-  return request<RecipeList>(`/api/recipes?limit=${limit}&offset=${offset}`, { signal });
+export interface ListOptions {
+  limit?: number;
+  offset?: number;
+  /** Text to search for in title, cuisine, description and ingredients. */
+  q?: string;
+  cuisine?: string;
+  minRating?: number;
+  sort?: SortOrder;
+  signal?: AbortSignal;
+}
+
+export function listRecipes(options: ListOptions = {}): Promise<RecipeList> {
+  const { limit = 24, offset = 0, q, cuisine, minRating, sort, signal } = options;
+  // URLSearchParams encodes whatever the user typed, so it can never change the shape of the query.
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (q) params.set('q', q);
+  if (cuisine) params.set('cuisine', cuisine);
+  if (minRating !== undefined) params.set('minRating', String(minRating));
+  if (sort) params.set('sort', sort);
+  return request<RecipeList>(`/api/recipes?${params.toString()}`, { signal });
+}
+
+export async function listCuisines(signal?: AbortSignal): Promise<Cuisine[]> {
+  const { items } = await request<{ items: Cuisine[] }>('/api/cuisines', { signal });
+  return items;
+}
+
+/** Sets the user's own rating (1 to 5), or clears it with null. */
+export function setRating(id: number, rating: number | null): Promise<RecipeDetail> {
+  return request<RecipeDetail>(`/api/recipes/${id}/rating`, jsonRequest('PATCH', { rating }));
 }
 
 export function getRecipe(id: number, signal?: AbortSignal): Promise<RecipeDetail> {

@@ -4,7 +4,7 @@ An open source, local-first recipe manager that answers one question: **what can
 
 Type the ingredients in your fridge and RecipeMixer will rank your saved recipes by how many of their ingredients you already have, and show what is missing. It is built to cut food waste, not to replace a full meal planner.
 
-> **Status: early development.** You can save, view, edit and delete recipes with photos, and find what you can cook from the ingredients you have. Search by name and cuisine and URL import are planned. See [the roadmap](#roadmap).
+> **Status: early development.** You can save, view, edit, search and delete recipes with photos, and find what you can cook from the ingredients you have. URL import is planned. See [the roadmap](#roadmap).
 
 ## Features
 
@@ -12,13 +12,13 @@ Available now:
 
 - Save recipes (title, cuisine, description, source link, your own 1 to 5 star rating, ingredients and steps) in a local SQLite database
 - Add a photo to each recipe: JPEG, PNG or WebP up to 5 MB, stored as a WebP file on disk with location and camera data removed
+- **Search** your recipes as you type, across title, cuisine, description and ingredients (word forms and accents are matched, and the best match comes first), filter by cuisine and minimum rating, and sort by best match, newest, highest rated or title. Rate a recipe with one click on its page
 - **What can I cook?** Enter the ingredients you have and see your recipes ranked by how much of each you can already make, with the missing ingredients listed. A partial match is fine, and the search lives in the page URL so it can be bookmarked
 - Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes
 - Everything open source, no accounts, no telemetry, no paid services
 
 Planned:
 
-- Search recipes by name and cuisine, sorted by your own rating
 - Import recipes from a URL using the page's standard `schema.org` recipe data
 
 ## Quick start
@@ -87,7 +87,9 @@ JSON over HTTP on the same port as the web app. Errors look like `{"error": "mes
 | Method and path | Purpose |
 |---|---|
 | `GET /api/health` | Server and database status |
-| `GET /api/recipes?limit=24&offset=0` | List recipes, newest first (`limit` 1 to 100) |
+| `GET /api/recipes?limit=24&offset=0` | List recipes (`limit` 1 to 100). Optional `q` (search text), `cuisine`, `minRating` (1 to 5) and `sort` (`relevance`, `newest`, `rating`, `title`); newest first by default, best match first when searching |
+| `GET /api/cuisines` | Cuisines in use with how many recipes each has |
+| `PATCH /api/recipes/:id/rating` | Set your rating (`{"rating": 4}`) or clear it (`{"rating": null}`) |
 | `POST /api/recipes` | Create a recipe |
 | `GET /api/recipes/:id` | Get one recipe with ingredients and steps |
 | `PUT /api/recipes/:id` | Replace a recipe |
@@ -121,7 +123,7 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 
 1. Foundation and security scaffold (done)
 2. Recipes and images (done)
-3. Name, cuisine and rating search
+3. Name, cuisine and rating search (done)
 4. Ingredient matching (done)
 5. URL import with SSRF protection
 6. UI polish

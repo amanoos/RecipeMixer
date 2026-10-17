@@ -15,7 +15,7 @@ describe('GET /api/health', () => {
     app = await makeApp();
     const res = await app.inject({ method: 'GET', url: '/api/health' });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ status: 'ok', schemaVersion: 3 });
+    expect(res.json()).toEqual({ status: 'ok', schemaVersion: 4 });
   });
 });
 
