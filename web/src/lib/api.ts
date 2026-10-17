@@ -1,5 +1,6 @@
 import type {
   Cuisine,
+  ImportPreview,
   IngredientSuggestion,
   MatchResult,
   RecipeDetail,
@@ -128,4 +129,14 @@ export async function suggestIngredients(prefix: string, signal?: AbortSignal): 
 
 export function deleteImage(id: number): Promise<RecipeDetail> {
   return request<RecipeDetail>(`/api/recipes/${id}/image`, { method: 'DELETE' });
+}
+
+/** Asks the server to fetch and read a recipe page. Nothing is saved. */
+export function previewImport(url: string, signal?: AbortSignal): Promise<ImportPreview> {
+  return request<ImportPreview>('/api/import/preview', { ...jsonRequest('POST', { url }), signal });
+}
+
+/** Asks the server to download a photo from a link and attach it to a saved recipe. */
+export function importImageFromUrl(id: number, url: string): Promise<RecipeDetail> {
+  return request<RecipeDetail>(`/api/recipes/${id}/image/from-url`, jsonRequest('POST', { url }));
 }

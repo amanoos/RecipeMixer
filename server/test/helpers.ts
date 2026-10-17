@@ -17,6 +17,7 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     webDist: path.join(os.tmpdir(), 'recipemixer-test-no-web-build'),
     logLevel: 'silent',
     allowInsecureNoAuth: false,
+    urlImportEnabled: true,
     isProduction: false,
     ...overrides,
   };

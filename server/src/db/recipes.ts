@@ -73,6 +73,14 @@ export function createRecipe(db: Db, input: RecipeInput): number {
   })();
 }
 
+/** The oldest saved recipe whose source link is exactly this address, if any. */
+export function findRecipeIdBySourceUrl(db: Db, sourceUrl: string): number | null {
+  const row = db.prepare('SELECT id FROM recipe WHERE source_url = ? ORDER BY id LIMIT 1').get(sourceUrl) as
+    | { id: number }
+    | undefined;
+  return row?.id ?? null;
+}
+
 export function getRecipe(db: Db, id: number): RecipeDetail | undefined {
   const row = db.prepare('SELECT * FROM recipe WHERE id = ?').get(id) as RecipeRow | undefined;
   if (!row) return undefined;

@@ -5,9 +5,11 @@ import {
   deleteImage,
   deleteRecipe,
   getRecipe,
+  importImageFromUrl,
   listCuisines,
   listRecipes,
   matchRecipes,
+  previewImport,
   setRating,
   suggestIngredients,
   updateRecipe,
@@ -195,5 +197,42 @@ describe('matching api', () => {
     const mock = stubFetch(ok({ items: [{ name: 'onion', count: 3 }] }));
     await expect(suggestIngredients('o&n')).resolves.toEqual([{ name: 'onion', count: 3 }]);
     expect(mock.mock.calls[0]?.[0]).toBe('/api/ingredients/suggest?q=o%26n');
+  });
+});
+
+describe('import api', () => {
+  it('asks the server to read a page and returns the preview', async () => {
+    const preview = { draft: { title: 'Soup' }, imageUrl: null, sourceUrl: 'https://food.example/soup', existingRecipeId: null };
+    const mock = stubFetch(ok(preview));
+    await expect(previewImport('https://food.example/soup')).resolves.toEqual(preview);
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/import/preview');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://food.example/soup' });
+  });
+
+  it('keeps the address inside the JSON body so it cannot change the request', async () => {
+    const mock = stubFetch(ok({}));
+    await previewImport('https://x.example/?a=1&b=2#frag');
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/import/preview');
+    expect(JSON.parse(init.body as string).url).toBe('https://x.example/?a=1&b=2#frag');
+  });
+
+  it('maps a refused import to an ApiError with the server message', async () => {
+    stubFetch(fail(422, { error: 'No recipe data found on that page' }));
+    await expect(previewImport('https://food.example/blog')).rejects.toMatchObject({
+      status: 422,
+      message: 'No recipe data found on that page',
+    });
+  });
+
+  it('asks the server to download a photo for a saved recipe', async () => {
+    const mock = stubFetch(ok({ id: 4, imageUrl: '/api/images/a.webp' }));
+    await expect(importImageFromUrl(4, 'https://food.example/a.jpg')).resolves.toMatchObject({ id: 4 });
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/recipes/4/image/from-url');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ url: 'https://food.example/a.jpg' });
   });
 });

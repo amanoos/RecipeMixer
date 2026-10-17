@@ -137,6 +137,17 @@ describe('routing', () => {
     expect(screen.getByRole('link', { name: 'What can I cook?' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('links to the import page from the header and shows it', async () => {
+    stubFetch(routes);
+    renderApp('/');
+    expect(screen.getByRole('link', { name: 'Import' })).toHaveAttribute('href', '/import');
+
+    stubFetch(routes);
+    renderApp('/import');
+    expect(await screen.findByRole('heading', { name: 'Import a recipe' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Recipe link')).toBeInTheDocument();
+  });
+
   it('shows a friendly page for unknown routes', async () => {
     stubFetch(routes);
     renderApp('/definitely/not/here');

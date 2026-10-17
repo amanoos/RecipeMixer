@@ -5,6 +5,7 @@ import {
   countImageReferences,
   createRecipe,
   deleteRecipe,
+  findRecipeIdBySourceUrl,
   getRecipe,
   listRecipes,
   setRecipeImage,
@@ -176,5 +177,27 @@ describe('images', () => {
     deleteRecipe(db, one);
     expect(countImageReferences(db, HASH_A)).toBe(1);
     expect(countImageReferences(db, HASH_B)).toBe(0);
+  });
+});
+
+describe('findRecipeIdBySourceUrl', () => {
+  it('finds the oldest recipe saved from exactly that address', () => {
+    const first = createRecipe(db, input({ title: 'First', sourceUrl: 'https://food.example/soup' }));
+    createRecipe(db, input({ title: 'Second', sourceUrl: 'https://food.example/soup' }));
+    createRecipe(db, input({ title: 'Other', sourceUrl: 'https://food.example/stew' }));
+    expect(findRecipeIdBySourceUrl(db, 'https://food.example/soup')).toBe(first);
+  });
+
+  it('returns null for an unknown, similar or empty address', () => {
+    createRecipe(db, input({ sourceUrl: 'https://food.example/soup' }));
+    createRecipe(db, input({ sourceUrl: null }));
+    expect(findRecipeIdBySourceUrl(db, 'https://food.example/soup/')).toBeNull();
+    expect(findRecipeIdBySourceUrl(db, 'https://FOOD.example/soup')).toBeNull();
+    expect(findRecipeIdBySourceUrl(db, '')).toBeNull();
+  });
+
+  it('treats the address as data, never as SQL', () => {
+    createRecipe(db, input({ sourceUrl: 'https://food.example/soup' }));
+    expect(findRecipeIdBySourceUrl(db, "x' OR '1'='1")).toBeNull();
   });
 });

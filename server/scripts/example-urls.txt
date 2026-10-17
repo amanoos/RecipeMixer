@@ -1,0 +1,6 @@
+# One recipe address per line for: npm run eval:import -w server -- path/to/urls.txt
+# Blank lines and lines starting with # are ignored.
+# Use about 20 pages from the sites you really cook from, so the result tells you
+# how well import works for you. Each page is fetched once, a second apart.
+#
+# https://example.com/recipes/some-recipe
