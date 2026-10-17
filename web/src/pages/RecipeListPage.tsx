@@ -257,7 +257,7 @@ export function RecipeListPage() {
         </div>
       ) : items.length === 0 && !filtered ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <ChefHat aria-hidden="true" className="size-10 text-primary" />
+          <ChefHat aria-hidden="true" className="rm-bob size-12 text-primary" />
           <h2 className="text-xl font-semibold">No recipes yet</h2>
           <p className="text-muted-foreground">Save your first recipe to start your collection.</p>
           <div className="flex flex-wrap justify-center gap-2">
@@ -295,7 +295,7 @@ export function RecipeListPage() {
               {filters.q ? ` for "${filters.q}"` : ''}
             </p>
           )}
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="rm-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((recipe, index) => (
               <li key={recipe.id}>
                 <RecipeCard recipe={recipe} priority={imagePriority(index)} />

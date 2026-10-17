@@ -67,7 +67,7 @@ export function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col text-foreground">
       <a
         href="#main"
         onClick={skipToContent}
@@ -76,11 +76,16 @@ export function Layout() {
         Skip to content
       </a>
 
-      <header className="border-b">
+      <header className="sticky top-0 z-40 border-b-2 border-primary/20 bg-background/85 backdrop-blur">
         {/* On a phone the logo and theme button share the first row and the links wrap beneath. */}
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3">
-          <Link to="/" className="mr-auto inline-flex items-center gap-2 text-lg font-semibold tracking-tight pointer-coarse:min-h-11">
-            <ChefHat aria-hidden="true" className="size-5 text-primary" />
+          <Link
+            to="/"
+            className="rm-wobble font-display mr-auto inline-flex items-center gap-2 text-xl font-semibold tracking-tight pointer-coarse:min-h-11"
+          >
+            <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+              <ChefHat aria-hidden="true" className="size-5" />
+            </span>
             RecipeMixer
           </Link>
           <Button
@@ -95,13 +100,17 @@ export function Layout() {
           <nav aria-label="Main" className="flex w-full flex-wrap items-center gap-1 sm:order-2 sm:w-auto">
             <NavLink
               to="/match"
-              className={({ isActive }) => cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted')}
+              className={({ isActive }) =>
+                cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-accent text-accent-foreground')
+              }
             >
               What can I cook?
             </NavLink>
             <NavLink
               to="/import"
-              className={({ isActive }) => cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-muted')}
+              className={({ isActive }) =>
+                cn(buttonVariants({ variant: 'ghost', size: 'sm' }), isActive && 'bg-accent text-accent-foreground')
+              }
             >
               Import
             </NavLink>

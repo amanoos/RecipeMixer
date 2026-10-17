@@ -12,7 +12,7 @@ export function RecipeCard({ recipe, priority = 'lazy' }: { recipe: RecipeSummar
       className="block h-full rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <Card className="h-full overflow-hidden transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md">
-        <CardImage src={recipe.imageUrl} priority={priority} />
+        <CardImage src={recipe.imageUrl} priority={priority} seed={recipe.title} />
         <CardContent className="flex flex-1 flex-col gap-2 pt-4">
           <h2 className="line-clamp-2 min-h-[2lh] font-medium">{recipe.title}</h2>
           <div className="mt-auto flex items-center justify-between gap-2">
