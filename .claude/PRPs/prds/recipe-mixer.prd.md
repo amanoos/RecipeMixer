@@ -46,8 +46,8 @@ All numeric targets are proposals and need author confirmation.
 
 - [ ] Do Mealie or Tandoor already support ranked partial-ingredient search? If so, is a standalone app still worth building (author has said yes for a hobby project)?
 - [ ] "Cloud" and "$0 spend" may conflict. Docker is not required for cloud hosting (author decision), so any host that can run a Node process with a persistent disk for SQLite and images qualifies. Which free options (if any) fit? TBD - needs research. SQLite needs a persistent disk, so stateless/serverless hosts are poor fits.
-- [ ] Seed data: is bundling an open dataset (tastyR CC0, Wikibooks Cookbook CC-BY-SA) licence-safe? CC0 label on a scrape of a commercial site is doubtful. Needs a licence check, or ship with no seed data.
-- [ ] TheMealDB as an optional plugin: terms restrict app-store release and some features are paid. Acceptable for an off-by-default plugin in a public repo?
+- [x] Seed data: resolved - no third-party dataset is bundled. About 40 original recipes written for the project ship as CC0 (see docs/DATA-SOURCES.md).
+- [x] TheMealDB as an optional plugin: resolved - included off by default, with a notice, official endpoints only, no key or data in the repository (see docs/DATA-SOURCES.md).
 - [x] Rating data: resolved - the author's own 1-5 star rating is sufficient; imported JSON-LD ratings are a bonus when present.
 - [x] Auth for cloud: resolved - a single shared password/token via environment variable is acceptable.
 - [x] Images: resolved - stored as files on disk, with the path/hash in the database.
@@ -157,7 +157,7 @@ Add a recipe by hand or by URL, then type ingredients and see ranked matches wit
 | 4 | Ingredient matching | Ingredient parser/normaliser, ranking by overlap, missing list, benchmark | complete | with 3, 5 | 2 | [plan](../plans/completed/ingredient-matching.plan.md), [report](../reports/ingredient-matching-report.md) |
 | 5 | URL import | JSON-LD import, image download, SSRF hardening and tests | complete | with 3, 4 | 2 | [plan](../plans/completed/url-import.plan.md), [report](../reports/url-import-report.md) |
 | 6 | UI polish | Ingredient chips, search-as-you-type, recipe cards, dark mode, responsive layout, accessibility | complete | - | 3, 4 | [plan](../plans/completed/ui-polish.plan.md), [report](../reports/ui-polish-report.md) |
-| 7 | Optional data sources | Licence-checked seed data; optional TheMealDB importer (off by default) | pending | with 8 | 4, 5 | - |
+| 7 | Optional data sources | Licence-checked seed data; optional TheMealDB importer (off by default) | complete | with 8 | 4, 5 | [plan](../plans/completed/optional-data-sources.plan.md), [report](../reports/optional-data-sources-report.md) |
 | 8 | Hardening & deployment | Shared-password auth, CSP, security review, cloud deployment guide, README/SECURITY.md | complete | with 7 | 5, 6 | [plan](../plans/completed/auth-hardening.plan.md), [report](../reports/auth-hardening-report.md) |
 
 ### Phase Details

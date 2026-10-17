@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AuthContext } from '@/lib/auth';
 import type { ImportPreview } from '@/lib/types';
 import { apiResponse, findCall, stubFetch } from '@/test-utils';
 import { ImportPage } from './ImportPage';
@@ -126,6 +127,85 @@ describe('ImportPage', () => {
     expect(screen.queryByText(/NEW RECIPE FORM/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Import anyway' }));
+    expect(await screen.findByText('NEW RECIPE FORM: Tomato soup')).toBeInTheDocument();
+  });
+});
+
+describe('ImportPage and TheMealDB', () => {
+  function renderWithFeature(mealdb: boolean) {
+    return render(
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb }, logout: async () => undefined }}>
+        <MemoryRouter initialEntries={['/import']}>
+          <Routes>
+            <Route path="/import" element={<ImportPage />} />
+            <Route path="/recipes/new" element={<FormProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+  }
+
+  it('does not show the TheMealDB search unless the server has it on', () => {
+    stubFetch({});
+    renderWithFeature(false);
+    expect(screen.queryByRole('heading', { name: 'Find on TheMealDB' })).not.toBeInTheDocument();
+    renderPage();
+    expect(screen.queryByLabelText('Recipe name')).not.toBeInTheDocument();
+  });
+
+  it('shows the search when it is on, and a chosen recipe opens the same review form as a link import', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/mealdb/search?q=soup': () =>
+        apiResponse({ items: [{ id: '5', title: 'Tomato soup', cuisine: null, category: 'Starter' }] }),
+      'GET /api/mealdb/meals/5': () => apiResponse(preview({ sourceUrl: 'https://www.themealdb.com/meal/5' })),
+    });
+    renderWithFeature(true);
+
+    expect(screen.getByRole('heading', { name: 'Find on TheMealDB' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Recipe name'), 'soup');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await user.click(await screen.findByRole('button', { name: 'Review Tomato soup' }));
+
+    expect(await screen.findByText('NEW RECIPE FORM: Tomato soup')).toBeInTheDocument();
+  });
+});
+
+describe('ImportPage and TheMealDB', () => {
+  function renderWithFeature(mealdb: boolean) {
+    return render(
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb }, logout: async () => undefined }}>
+        <MemoryRouter initialEntries={['/import']}>
+          <Routes>
+            <Route path="/import" element={<ImportPage />} />
+            <Route path="/recipes/new" element={<FormProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+  }
+
+  it('does not show the TheMealDB search unless the server has it on', () => {
+    stubFetch({});
+    renderWithFeature(false);
+    expect(screen.queryByRole('heading', { name: 'Find on TheMealDB' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Recipe name')).not.toBeInTheDocument();
+  });
+
+  it('shows the search when it is on, and a chosen recipe opens the same review form as a link import', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/mealdb/search?q=soup': () =>
+        apiResponse({ items: [{ id: '5', title: 'Tomato soup', cuisine: null, category: 'Starter' }] }),
+      'GET /api/mealdb/meals/5': () => apiResponse(preview({ sourceUrl: 'https://www.themealdb.com/meal/5' })),
+    });
+    renderWithFeature(true);
+
+    expect(screen.getByRole('heading', { name: 'Find on TheMealDB' })).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Recipe name'), 'soup');
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    await user.click(await screen.findByRole('button', { name: 'Review Tomato soup' }));
+
     expect(await screen.findByText('NEW RECIPE FORM: Tomato soup')).toBeInTheDocument();
   });
 });

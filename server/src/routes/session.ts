@@ -16,10 +16,15 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 const minutes = (seconds: number): number => Math.max(1, Math.ceil(seconds / 60));
 
 /** Login, logout and "who am I". Public: these three are the only API routes that work without a session. */
-export const sessionRoutes: FastifyPluginAsync<{ auth: AuthContext }> = async (app, { auth }) => {
+export const sessionRoutes: FastifyPluginAsync<{ auth: AuthContext; features: { mealdb: boolean } }> = async (
+  app,
+  { auth, features },
+) => {
   app.get('/api/session', async (req) => ({
     authRequired: auth.enabled,
     authenticated: auth.isAuthenticated(req),
+    // Which optional features this server has switched on, so the page can show or hide them. Nothing secret.
+    features,
   }));
 
   app.post('/api/session', { config: { rateLimit: LOGIN_RATE_LIMIT } }, async (req, reply) => {

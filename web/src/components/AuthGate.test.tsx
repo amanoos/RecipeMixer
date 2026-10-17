@@ -197,3 +197,29 @@ describe('logging out', () => {
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
   });
 });
+
+describe('AuthGate and optional features', () => {
+  function Features() {
+    const { features } = useAuth();
+    return <p>TheMealDB: {String(features.mealdb)}</p>;
+  }
+
+  const renderFeatures = () =>
+    render(
+      <AuthGate>
+        <Features />
+      </AuthGate>,
+    );
+
+  it('passes on what the server says is switched on', async () => {
+    stubFetch({ 'GET /api/session': () => apiResponse({ authRequired: false, authenticated: true, features: { mealdb: true } }) });
+    renderFeatures();
+    expect(await screen.findByText('TheMealDB: true')).toBeInTheDocument();
+  });
+
+  it('treats a missing or odd answer as off', async () => {
+    stubFetch({ 'GET /api/session': () => apiResponse({ authRequired: false, authenticated: true, features: { mealdb: 'yes' } }) });
+    renderFeatures();
+    expect(await screen.findByText('TheMealDB: false')).toBeInTheDocument();
+  });
+});

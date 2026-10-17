@@ -1,0 +1,303 @@
+[
+  {
+    "title": "Simple Tomato Soup",
+    "cuisine": "American",
+    "description": "A smooth soup from pantry staples.",
+    "ingredients": ["1 tbsp olive oil", "1 onion, chopped", "2 cloves garlic, minced", "1 can (28 oz) crushed tomatoes", "2 cups vegetable broth", "salt and pepper"],
+    "steps": ["Warm the oil in a pot and cook the onion until soft, about 5 minutes.", "Add the garlic for 30 seconds, then the tomatoes and broth.", "Simmer for 15 minutes, blend until smooth and season to taste."]
+  },
+  {
+    "title": "Garlic Olive Oil Spaghetti",
+    "cuisine": "Italian",
+    "description": "Pasta with garlic, oil and chilli, ready in the time it takes to boil water.",
+    "ingredients": ["8 oz spaghetti", "4 cloves garlic, sliced", "1/3 cup olive oil", "1/2 tsp chilli flakes", "2 tbsp chopped parsley", "salt"],
+    "steps": ["Boil the spaghetti in salted water until al dente and keep a cup of the water.", "Warm the oil with the garlic and chilli over low heat until the garlic is pale gold.", "Toss the pasta in the pan with a splash of pasta water and the parsley."]
+  },
+  {
+    "title": "Chicken and Rice Skillet",
+    "cuisine": "American",
+    "description": "Everything cooks in one pan.",
+    "ingredients": ["1 lb chicken thighs, cut into pieces", "1 cup long grain rice", "1 onion, diced", "2 cloves garlic", "2 cups chicken broth", "1 tsp paprika", "1 tbsp vegetable oil", "salt and pepper"],
+    "steps": ["Brown the seasoned chicken in the oil and set it aside.", "Cook the onion and garlic in the same pan, then stir in the rice and paprika.", "Add the broth and chicken, cover and cook on low for 20 minutes until the rice is tender."]
+  },
+  {
+    "title": "Beef Tacos",
+    "cuisine": "Mexican",
+    "description": "Seasoned ground beef in warm tortillas.",
+    "ingredients": ["1 lb ground beef", "1 onion, chopped", "2 tsp chilli powder", "1 tsp ground cumin", "8 corn tortillas", "1 tomato, diced", "1 cup shredded cheddar", "1 cup shredded lettuce"],
+    "steps": ["Brown the beef with the onion and drain the fat.", "Stir in the chilli powder, cumin and a splash of water and cook for 3 minutes.", "Warm the tortillas and fill with beef, tomato, cheese and lettuce."]
+  },
+  {
+    "title": "Vegetable Fried Rice",
+    "cuisine": "Chinese",
+    "description": "A good use for leftover rice.",
+    "ingredients": ["3 cups cooked rice, cold", "2 eggs, beaten", "1 carrot, diced", "1 cup frozen peas", "3 green onions, sliced", "2 tbsp soy sauce", "1 tbsp vegetable oil", "1 tsp sesame oil"],
+    "steps": ["Scramble the eggs in a hot wok with the vegetable oil and set aside.", "Stir fry the carrot and peas for 3 minutes, then add the rice and soy sauce.", "Return the eggs, add the green onions and sesame oil and toss for a minute."]
+  },
+  {
+    "title": "Red Lentil Dal",
+    "cuisine": "Indian",
+    "description": "A comforting dal that thickens as it stands.",
+    "ingredients": ["1 cup red lentils, rinsed", "3 cups water", "1 onion, chopped", "3 cloves garlic", "1 tbsp grated ginger", "1 tsp turmeric", "1 tsp ground cumin", "1 tbsp butter", "salt", "1 lemon, juiced"],
+    "steps": ["Simmer the lentils with the water and turmeric for 20 minutes until soft.", "Fry the onion, garlic, ginger and cumin in the butter until golden.", "Stir the onion mixture into the lentils, add salt and lemon juice and serve with rice."]
+  },
+  {
+    "title": "Chickpea Curry",
+    "cuisine": "Indian",
+    "description": "A quick curry from cans.",
+    "ingredients": ["2 cans chickpeas, drained", "1 onion, diced", "2 cloves garlic", "1 tbsp curry powder", "1 can (14 oz) diced tomatoes", "1 can (14 oz) coconut milk", "1 tbsp vegetable oil", "salt"],
+    "steps": ["Soften the onion and garlic in the oil, then stir in the curry powder.", "Add the tomatoes, coconut milk and chickpeas.", "Simmer for 15 minutes and season with salt."]
+  },
+  {
+    "title": "Mushroom Omelette",
+    "cuisine": "French",
+    "description": "A quick breakfast or supper.",
+    "ingredients": ["3 eggs", "1 cup sliced mushrooms", "1 tbsp butter", "1/4 cup grated cheese", "salt and pepper"],
+    "steps": ["Cook the mushrooms in half of the butter until browned and set aside.", "Beat the eggs with salt and pepper and cook in the rest of the butter over medium heat.", "Add the mushrooms and cheese, fold the omelette and serve."]
+  },
+  {
+    "title": "Fluffy Pancakes",
+    "cuisine": "American",
+    "description": "Classic weekend pancakes.",
+    "ingredients": ["1 1/2 cups flour", "1 tbsp sugar", "2 tsp baking powder", "1/2 tsp salt", "1 1/4 cups milk", "1 egg", "3 tbsp melted butter"],
+    "steps": ["Whisk the dry ingredients together in a bowl.", "Mix the milk, egg and butter, then stir into the dry ingredients until just combined.", "Cook scoops of batter on a hot greased pan until bubbles appear, flip and cook until golden."]
+  },
+  {
+    "title": "Shakshuka",
+    "cuisine": "Middle Eastern",
+    "description": "Eggs poached in spiced tomato sauce.",
+    "ingredients": ["1 tbsp olive oil", "1 onion, sliced", "1 red bell pepper, sliced", "3 cloves garlic", "1 tsp ground cumin", "1 tsp paprika", "1 can (28 oz) diced tomatoes", "4 eggs", "salt"],
+    "steps": ["Soften the onion and pepper in the oil, then add the garlic and spices.", "Add the tomatoes and simmer for 10 minutes until thick.", "Make four wells, crack in the eggs, cover and cook until the whites are set."]
+  },
+  {
+    "title": "Greek Salad",
+    "cuisine": "Greek",
+    "description": "Crisp vegetables with salty cheese.",
+    "ingredients": ["4 tomatoes, cut into wedges", "1 cucumber, sliced", "1 red onion, thinly sliced", "1/2 cup olives", "4 oz feta cheese", "3 tbsp olive oil", "1 tbsp red wine vinegar", "1 tsp dried oregano"],
+    "steps": ["Combine the tomatoes, cucumber, onion and olives in a bowl.", "Whisk the oil, vinegar and oregano and pour over the salad.", "Top with the feta and serve right away."]
+  },
+  {
+    "title": "Black Bean Chili",
+    "cuisine": "Mexican",
+    "description": "A hearty meatless chili.",
+    "ingredients": ["2 cans black beans, drained", "1 onion, diced", "1 green bell pepper, diced", "3 cloves garlic", "2 tbsp chilli powder", "1 tsp ground cumin", "1 can (14 oz) diced tomatoes", "1 cup vegetable broth", "1 tbsp vegetable oil"],
+    "steps": ["Cook the onion and pepper in the oil until soft, then add the garlic and spices.", "Add the beans, tomatoes and broth.", "Simmer for 25 minutes, mashing a few beans to thicken."]
+  },
+  {
+    "title": "Mac and Cheese",
+    "cuisine": "American",
+    "description": "Stovetop macaroni with a cheese sauce.",
+    "ingredients": ["8 oz elbow macaroni", "2 tbsp butter", "2 tbsp flour", "2 cups milk", "2 cups shredded cheddar", "salt and pepper"],
+    "steps": ["Cook the macaroni and drain.", "Melt the butter, stir in the flour for a minute, then whisk in the milk until thick.", "Off the heat stir in the cheese, then fold in the pasta and season."]
+  },
+  {
+    "title": "Potato Leek Soup",
+    "cuisine": "French",
+    "description": "Silky soup from two humble vegetables.",
+    "ingredients": ["3 leeks, sliced", "3 potatoes, peeled and cubed", "2 tbsp butter", "4 cups vegetable broth", "1/2 cup cream", "salt and pepper"],
+    "steps": ["Soften the leeks in the butter for 8 minutes without browning.", "Add the potatoes and broth and simmer for 20 minutes.", "Blend until smooth, stir in the cream and season."]
+  },
+  {
+    "title": "Lemon Garlic Chicken",
+    "cuisine": "Mediterranean",
+    "description": "Roasted chicken thighs with a bright pan sauce.",
+    "ingredients": ["6 chicken thighs", "4 cloves garlic, smashed", "2 lemons", "2 tbsp olive oil", "1 tsp dried oregano", "salt and pepper"],
+    "steps": ["Toss the chicken with the oil, garlic, juice of one lemon, oregano, salt and pepper.", "Roast at 425F (220C) for 35 minutes with slices of the second lemon.", "Spoon the pan juices over the chicken to serve."]
+  },
+  {
+    "title": "Pad Thai Style Noodles",
+    "cuisine": "Thai",
+    "description": "A quick take on the street food favourite.",
+    "ingredients": ["8 oz rice noodles", "2 eggs", "2 cloves garlic", "1 cup bean sprouts", "3 green onions", "3 tbsp soy sauce", "1 tbsp brown sugar", "1 tbsp lime juice", "2 tbsp vegetable oil", "1/4 cup chopped peanuts"],
+    "steps": ["Soak the noodles in hot water until just tender and drain.", "Scramble the eggs with the garlic in the oil, then add the noodles, soy sauce, sugar and lime juice.", "Toss in the sprouts and green onions and serve topped with peanuts."]
+  },
+  {
+    "title": "Thai Green Curry with Vegetables",
+    "cuisine": "Thai",
+    "description": "Creamy and mildly spicy.",
+    "ingredients": ["2 tbsp green curry paste", "1 can (14 oz) coconut milk", "1 zucchini, sliced", "1 red bell pepper, sliced", "1 cup green beans", "1 tbsp soy sauce", "1 tsp sugar", "cooked rice for serving"],
+    "steps": ["Fry the curry paste in a spoonful of the thick coconut milk for a minute.", "Add the rest of the coconut milk and the vegetables.", "Simmer for 8 minutes, season with soy sauce and sugar and serve over rice."]
+  },
+  {
+    "title": "Spinach and Feta Quiche",
+    "cuisine": "French",
+    "description": "Good for lunch the next day too.",
+    "ingredients": ["1 pie crust", "5 oz fresh spinach", "4 eggs", "1 cup milk", "4 oz feta cheese, crumbled", "1 onion, chopped", "1 tbsp butter", "salt and pepper"],
+    "steps": ["Cook the onion in the butter, then wilt the spinach and squeeze out the water.", "Spread the spinach and feta in the crust.", "Whisk the eggs, milk, salt and pepper, pour in and bake at 375F (190C) for 35 minutes."]
+  },
+  {
+    "title": "Baked Stuffed Peppers",
+    "cuisine": "American",
+    "description": "Peppers filled with beef and rice.",
+    "ingredients": ["4 bell peppers, tops cut off", "1 lb ground beef", "1 cup cooked rice", "1 onion, diced", "1 can (14 oz) diced tomatoes", "1 cup shredded cheese", "salt and pepper"],
+    "steps": ["Brown the beef with the onion, then mix with the rice and half of the tomatoes.", "Fill the peppers, stand them in a dish and pour the remaining tomatoes around them.", "Cover and bake at 375F (190C) for 40 minutes, top with cheese and bake 5 minutes more."]
+  },
+  {
+    "title": "Banana Bread",
+    "cuisine": "American",
+    "description": "A way to use very ripe bananas.",
+    "ingredients": ["3 ripe bananas, mashed", "1/3 cup melted butter", "3/4 cup sugar", "1 egg", "1 tsp vanilla extract", "1 tsp baking soda", "1 1/2 cups flour", "pinch of salt"],
+    "steps": ["Mix the bananas and butter, then stir in the sugar, egg and vanilla.", "Fold in the baking soda, salt and flour until just combined.", "Bake in a greased loaf pan at 350F (175C) for about 55 minutes."]
+  },
+  {
+    "title": "Avocado Toast with Egg",
+    "cuisine": "American",
+    "description": "Breakfast in five minutes.",
+    "ingredients": ["2 slices bread, toasted", "1 ripe avocado", "2 eggs", "1/2 lemon, juiced", "chilli flakes", "salt and pepper"],
+    "steps": ["Mash the avocado with lemon juice, salt and pepper.", "Fry or poach the eggs.", "Spread the avocado on the toast, top with the eggs and chilli flakes."]
+  },
+  {
+    "title": "Caprese Salad",
+    "cuisine": "Italian",
+    "description": "Three ingredients and good olive oil.",
+    "ingredients": ["4 tomatoes, sliced", "8 oz fresh mozzarella, sliced", "1/2 cup fresh basil leaves", "2 tbsp olive oil", "salt and pepper"],
+    "steps": ["Layer the tomato and mozzarella slices on a plate.", "Tuck in the basil leaves.", "Drizzle with the oil and season with salt and pepper."]
+  },
+  {
+    "title": "Mushroom Risotto",
+    "cuisine": "Italian",
+    "description": "Creamy rice, stirred patiently.",
+    "ingredients": ["1 1/2 cups arborio rice", "8 oz mushrooms, sliced", "1 onion, finely chopped", "4 cups hot vegetable broth", "1/2 cup white wine", "2 tbsp butter", "1/2 cup grated parmesan", "salt and pepper"],
+    "steps": ["Brown the mushrooms in half of the butter and set aside.", "Soften the onion, add the rice and wine and stir until absorbed.", "Add the broth a ladle at a time, stirring, for about 20 minutes, then fold in the mushrooms, parmesan and remaining butter."]
+  },
+  {
+    "title": "Pork and Cabbage Stir Fry",
+    "cuisine": "Chinese",
+    "description": "Fast weeknight dinner.",
+    "ingredients": ["1 lb ground pork", "1/2 head cabbage, shredded", "3 cloves garlic", "1 tbsp grated ginger", "2 tbsp soy sauce", "1 tsp sesame oil", "1 tbsp vegetable oil"],
+    "steps": ["Brown the pork in the oil, breaking it up.", "Add the garlic and ginger, then the cabbage.", "Stir fry until the cabbage wilts and finish with soy sauce and sesame oil."]
+  },
+  {
+    "title": "Fish Tacos",
+    "cuisine": "Mexican",
+    "description": "Crisp fish with a lime slaw.",
+    "ingredients": ["1 lb white fish fillets", "1 tsp chilli powder", "1 tbsp vegetable oil", "8 small tortillas", "2 cups shredded cabbage", "2 limes", "1/4 cup sour cream", "fresh cilantro"],
+    "steps": ["Rub the fish with the chilli powder and salt, then pan fry in the oil for 3 minutes per side.", "Toss the cabbage with the juice of one lime.", "Flake the fish into warm tortillas with the slaw, sour cream and cilantro, and serve with lime wedges."]
+  },
+  {
+    "title": "Pesto Gnocchi",
+    "cuisine": "Italian",
+    "description": "Pan fried gnocchi with basil sauce.",
+    "ingredients": ["1 lb potato gnocchi", "2 tbsp olive oil", "1/3 cup basil pesto", "1 cup cherry tomatoes, halved", "grated parmesan"],
+    "steps": ["Boil the gnocchi until they float, then drain.", "Brown them in the oil for a few minutes.", "Stir in the pesto and tomatoes and finish with parmesan."]
+  },
+  {
+    "title": "Roasted Vegetable Tray Bake",
+    "cuisine": "Mediterranean",
+    "description": "Everything on one tray.",
+    "ingredients": ["2 zucchini, chunked", "1 red bell pepper, chunked", "1 red onion, wedges", "1 eggplant, cubed", "3 tbsp olive oil", "1 tsp dried thyme", "salt and pepper"],
+    "steps": ["Heat the oven to 425F (220C).", "Toss the vegetables with the oil, thyme, salt and pepper on a large tray.", "Roast for 30 minutes, turning once."]
+  },
+  {
+    "title": "Egg Fried Noodles",
+    "cuisine": "Chinese",
+    "description": "Noodles with egg and greens.",
+    "ingredients": ["8 oz egg noodles", "3 eggs", "2 cups chopped spinach", "2 cloves garlic", "2 tbsp soy sauce", "1 tbsp vegetable oil", "1 tsp sesame oil"],
+    "steps": ["Boil the noodles for 3 minutes and drain.", "Scramble the eggs in the oil, then add the garlic and spinach.", "Add the noodles, soy sauce and sesame oil and toss until hot."]
+  },
+  {
+    "title": "French Onion Soup",
+    "cuisine": "French",
+    "description": "Slow cooked onions under melted cheese.",
+    "ingredients": ["4 large onions, thinly sliced", "3 tbsp butter", "1 tsp sugar", "6 cups beef broth", "1/2 cup dry white wine", "4 slices baguette", "1 cup shredded gruyere"],
+    "steps": ["Cook the onions in the butter with the sugar over low heat for 40 minutes until deep brown.", "Add the wine and broth and simmer for 20 minutes.", "Ladle into bowls, top with bread and cheese and grill until bubbling."]
+  },
+  {
+    "title": "Chicken Noodle Soup",
+    "cuisine": "American",
+    "description": "For a cold day.",
+    "ingredients": ["2 chicken breasts", "8 cups chicken broth", "2 carrots, sliced", "2 stalks celery, sliced", "1 onion, diced", "4 oz egg noodles", "salt and pepper"],
+    "steps": ["Simmer the chicken in the broth with the vegetables for 20 minutes.", "Lift out the chicken, shred it and return it to the pot.", "Add the noodles and cook for 6 minutes, then season."]
+  },
+  {
+    "title": "Hummus",
+    "cuisine": "Middle Eastern",
+    "description": "Smooth chickpea dip.",
+    "ingredients": ["1 can chickpeas, drained", "1/4 cup tahini", "2 tbsp lemon juice", "1 clove garlic", "3 tbsp olive oil", "2 tbsp cold water", "salt"],
+    "steps": ["Blend the tahini and lemon juice for a minute.", "Add the chickpeas, garlic, oil, water and salt and blend until very smooth.", "Serve drizzled with more oil."]
+  },
+  {
+    "title": "Potato and Egg Hash",
+    "cuisine": "American",
+    "description": "Crisp potatoes with a fried egg.",
+    "ingredients": ["3 potatoes, diced", "1 onion, diced", "2 tbsp vegetable oil", "4 eggs", "1 tsp paprika", "salt and pepper"],
+    "steps": ["Cook the potatoes in the oil over medium heat for 12 minutes, turning, until golden.", "Add the onion and paprika and cook 5 more minutes.", "Fry the eggs and serve on top."]
+  },
+  {
+    "title": "Tuna Pasta Salad",
+    "cuisine": "Mediterranean",
+    "description": "A cold lunch from the pantry.",
+    "ingredients": ["8 oz pasta shapes", "1 can tuna, drained", "1 cup cherry tomatoes, halved", "1/2 cucumber, diced", "2 tbsp olive oil", "1 lemon, juiced", "salt and pepper"],
+    "steps": ["Cook the pasta, drain and rinse under cold water.", "Toss with the tuna, tomatoes and cucumber.", "Dress with the oil and lemon juice and season."]
+  },
+  {
+    "title": "Bean and Cheese Quesadillas",
+    "cuisine": "Mexican",
+    "description": "Crisp tortillas with melted cheese.",
+    "ingredients": ["4 flour tortillas", "1 can black beans, drained and mashed", "1 1/2 cups shredded cheese", "2 green onions, sliced", "1 tbsp vegetable oil"],
+    "steps": ["Spread beans over half of each tortilla, add cheese and green onions and fold over.", "Cook in a lightly oiled pan for 2 minutes per side until crisp.", "Cut into wedges and serve."]
+  },
+  {
+    "title": "Butternut Squash Soup",
+    "cuisine": "American",
+    "description": "Sweet, smooth and filling.",
+    "ingredients": ["1 butternut squash, peeled and cubed", "1 onion, chopped", "2 cloves garlic", "4 cups vegetable broth", "1 tbsp olive oil", "1/2 tsp nutmeg", "salt and pepper"],
+    "steps": ["Soften the onion and garlic in the oil.", "Add the squash and broth and simmer for 25 minutes.", "Blend smooth and season with nutmeg, salt and pepper."]
+  },
+  {
+    "title": "Beef and Broccoli Stir Fry",
+    "cuisine": "Chinese",
+    "description": "Tender beef in a savoury sauce.",
+    "ingredients": ["1 lb flank steak, thinly sliced", "3 cups broccoli florets", "3 cloves garlic", "3 tbsp soy sauce", "1 tbsp cornstarch", "1 tbsp brown sugar", "2 tbsp vegetable oil", "cooked rice for serving"],
+    "steps": ["Toss the beef with one tablespoon of the soy sauce and the cornstarch.", "Sear the beef in the oil in batches and set aside.", "Stir fry the broccoli and garlic, add the beef back with the rest of the soy sauce and the sugar, and serve over rice."]
+  },
+  {
+    "title": "Spanish Tortilla",
+    "cuisine": "Spanish",
+    "description": "A thick potato omelette served warm or cold.",
+    "ingredients": ["4 potatoes, thinly sliced", "1 onion, thinly sliced", "6 eggs", "1/2 cup olive oil", "salt"],
+    "steps": ["Cook the potatoes and onion gently in the oil for 20 minutes until tender, then drain.", "Mix with the beaten eggs and salt.", "Cook in a pan until set underneath, flip using a plate and cook the other side for 3 minutes."]
+  },
+  {
+    "title": "Cucumber Yogurt Salad",
+    "cuisine": "Middle Eastern",
+    "description": "Cooling side for spicy dishes.",
+    "ingredients": ["2 cucumbers, diced", "1 cup plain yogurt", "1 clove garlic, minced", "1 tbsp chopped mint", "1 tbsp olive oil", "salt"],
+    "steps": ["Stir the yogurt with the garlic, mint, oil and salt.", "Fold in the cucumber.", "Chill for 15 minutes before serving."]
+  },
+  {
+    "title": "Sausage and Peppers",
+    "cuisine": "Italian",
+    "description": "Browned sausage with sweet peppers.",
+    "ingredients": ["1 lb Italian sausage", "2 bell peppers, sliced", "1 onion, sliced", "2 cloves garlic", "1 tbsp olive oil", "1/2 cup tomato sauce"],
+    "steps": ["Brown the sausages in a large pan and remove.", "Cook the peppers, onion and garlic in the oil until soft.", "Return the sausages with the tomato sauce and simmer for 10 minutes."]
+  },
+  {
+    "title": "Coconut Rice",
+    "cuisine": "Thai",
+    "description": "Fragrant side dish.",
+    "ingredients": ["1 cup jasmine rice", "1 cup coconut milk", "1 cup water", "1/2 tsp salt", "1 tsp sugar"],
+    "steps": ["Rinse the rice.", "Bring everything to a simmer, cover and cook on low for 15 minutes.", "Rest for 10 minutes and fluff with a fork."]
+  },
+  {
+    "title": "Oatmeal with Apple and Cinnamon",
+    "cuisine": "American",
+    "description": "A warm breakfast.",
+    "ingredients": ["1 cup rolled oats", "2 cups milk", "1 apple, diced", "1 tsp cinnamon", "1 tbsp honey", "pinch of salt"],
+    "steps": ["Simmer the oats, milk, apple and salt for 6 minutes, stirring.", "Stir in the cinnamon.", "Serve with honey."]
+  },
+  {
+    "title": "Miso Soup with Tofu",
+    "cuisine": "Japanese",
+    "description": "Light soup in minutes.",
+    "ingredients": ["4 cups water", "3 tbsp miso paste", "8 oz firm tofu, cubed", "2 green onions, sliced", "1 sheet nori, torn"],
+    "steps": ["Heat the water until steaming but not boiling.", "Whisk the miso in a little hot water and stir it into the pot.", "Add the tofu, green onions and nori and serve."]
+  },
+  {
+    "title": "Honey Garlic Salmon",
+    "cuisine": "American",
+    "description": "Glazed salmon in fifteen minutes.",
+    "ingredients": ["4 salmon fillets", "3 tbsp honey", "3 tbsp soy sauce", "3 cloves garlic, minced", "1 tbsp olive oil", "1 lemon"],
+    "steps": ["Whisk the honey, soy sauce and garlic.", "Sear the salmon in the oil for 3 minutes per side.", "Pour in the glaze and cook for 2 minutes, spooning it over, and serve with lemon."]
+  }
+]

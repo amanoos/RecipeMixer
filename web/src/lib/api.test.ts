@@ -9,11 +9,14 @@ import {
   importImageFromUrl,
   listCuisines,
   listRecipes,
+  loadStarterRecipes,
   login,
   logout,
   matchRecipes,
   onUnauthorized,
   previewImport,
+  previewMealDb,
+  searchMealDb,
   setRating,
   suggestIngredients,
   updateRecipe,
@@ -303,5 +306,28 @@ describe('an ended session', () => {
     stubFetch(fail(401, { error: 'Login required' }));
     await expect(listRecipes()).rejects.toMatchObject({ status: 401 });
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe('starter recipes and TheMealDB api', () => {
+  it('asks the server to load the starter recipes with a POST and no body', async () => {
+    const mock = stubFetch(ok({ added: 40, skipped: 0 }));
+    await expect(loadStarterRecipes()).resolves.toEqual({ added: 40, skipped: 0 });
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/starter-recipes');
+    expect(init.method).toBe('POST');
+    expect(init.body).toBeUndefined();
+  });
+
+  it('searches TheMealDB with the text encoded and returns the items', async () => {
+    const mock = stubFetch(ok({ items: [{ id: '1', title: 'Soup', cuisine: null, category: null }] }));
+    await expect(searchMealDb('a&b=c d')).resolves.toEqual([{ id: '1', title: 'Soup', cuisine: null, category: null }]);
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/mealdb/search?q=a%26b%3Dc+d');
+  });
+
+  it('reads one meal by id, with the id encoded', async () => {
+    const mock = stubFetch(ok({ draft: {}, imageUrl: null, sourceUrl: 'x', existingRecipeId: null }));
+    await previewMealDb('12/3');
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/mealdb/meals/12%2F3');
   });
 });

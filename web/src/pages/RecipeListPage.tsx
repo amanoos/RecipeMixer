@@ -7,7 +7,7 @@ import { RecipeCard } from '@/components/RecipeCard';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { listCuisines, listRecipes } from '@/lib/api';
+import { listCuisines, listRecipes, loadStarterRecipes } from '@/lib/api';
 import type { Cuisine, RecipeSummary, SortOrder } from '@/lib/types';
 import { useDocumentTitle } from '@/lib/use-document-title';
 
@@ -58,6 +58,8 @@ export function RecipeListPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [loadingStarter, setLoadingStarter] = useState(false);
+  const [starterError, setStarterError] = useState(false);
 
   function updateParams(changes: Record<string, string | undefined>) {
     const next = new URLSearchParams(params);
@@ -77,7 +79,7 @@ export function RecipeListPage() {
         // No cuisine menu is better than an error banner.
       });
     return () => controller.abort();
-  }, []);
+  }, [retry]);
 
   // Keep the box in step when the URL changes from elsewhere (Clear filters, the back button).
   useEffect(() => {
@@ -135,6 +137,20 @@ export function RecipeListPage() {
       })
       .catch(() => setFailed(true))
       .finally(() => setLoadingMore(false));
+  }
+
+  async function handleLoadStarter() {
+    setStarterError(false);
+    setLoadingStarter(true);
+    try {
+      await loadStarterRecipes();
+      // Reload the list and the cuisine menu, which now have content.
+      setRetry((count) => count + 1);
+    } catch {
+      setStarterError(true);
+    } finally {
+      setLoadingStarter(false);
+    }
   }
 
   function clearFilters() {
@@ -244,9 +260,23 @@ export function RecipeListPage() {
           <ChefHat aria-hidden="true" className="size-10 text-primary" />
           <h2 className="text-xl font-semibold">No recipes yet</h2>
           <p className="text-muted-foreground">Save your first recipe to start your collection.</p>
-          <Link to="/recipes/new" className={buttonVariants()}>
-            Add your first recipe
-          </Link>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Link to="/recipes/new" className={buttonVariants()}>
+              Add your first recipe
+            </Link>
+            <Button variant="outline" disabled={loadingStarter} onClick={() => void handleLoadStarter()}>
+              {loadingStarter ? 'Loading...' : 'Load starter recipes'}
+            </Button>
+          </div>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Or try the app with about forty simple starter recipes. They are free for anyone to use and you can delete
+            them any time.
+          </p>
+          {starterError && (
+            <p role="alert" className="text-sm text-destructive">
+              Could not load the starter recipes. Is the server running?
+            </p>
+          )}
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-12 text-center">

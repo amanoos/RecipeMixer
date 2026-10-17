@@ -18,6 +18,7 @@ Available now:
 - **Private by design:** by default it only answers on your own computer. To use it from your phone or from anywhere else, set a password (`APP_PASSWORD_FILE`) and put HTTPS in front; every recipe, search and photo is then behind the login. The [deployment guide](docs/DEPLOYMENT.md) covers free options, including private access with Tailscale
 - Everything open source, no accounts, no telemetry, no paid services
 
+- **Starter recipes:** an empty library offers a **Load starter recipes** button that adds about forty simple recipes written for this project and free to use (CC0). Nothing is added twice
 - **Import from a link:** paste the address of a recipe page and RecipeMixer reads the page's standard `schema.org` recipe data (title, ingredients, steps, cuisine, photo), shows it in the normal form for you to check, and saves it with the photo. Nothing is saved until you press Save
 
 ## Quick start
@@ -67,6 +68,8 @@ Settings come from environment variables (see [`.env.example`](.env.example)). N
 | `LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent`. |
 | `ALLOW_INSECURE_NO_AUTH` | `false` | Explicit opt-in to listen beyond loopback without a password. Not needed when a password is set. |
 | `URL_IMPORT_ENABLED` | `true` | Set to `false` to turn off fetching pages and photos from links completely. |
+| `MEALDB_ENABLED` | `false` | Set to `true` to add a TheMealDB search to the Import page. See [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). |
+| `MEALDB_API_KEY` | `1` | TheMealDB key. `1` is their free development key; a supporter key stays in the environment only. |
 | `WEB_DIST` | built-in path | Folder containing the built web app. Set automatically in Docker. |
 
 ### Backups
@@ -108,6 +111,8 @@ JSON over HTTP on the same port as the web app. Errors look like `{"error": "mes
 | `GET /api/ingredients/suggest?q=on` | Ingredient names from your recipes that start with a prefix |
 | `POST /api/import/preview` | Fetch a recipe page and return what was read (`{"url": "https://..."}`); saves nothing. Limited to 10 calls a minute |
 | `POST /api/recipes/:id/image/from-url` | Download a photo from a link, re-encode it like an upload and attach it to a saved recipe |
+| `POST /api/starter-recipes` | Add the bundled starter recipes that are not in the library yet (repeating it adds nothing) |
+| `GET /api/mealdb/search?q=pasta`, `GET /api/mealdb/meals/:id` | Only when `MEALDB_ENABLED=true`, otherwise 404. Search TheMealDB by name, and read one meal as a draft to review. Each has the import limit of 10 calls a minute, and fetches share the cap of 2 at a time |
 
 ## How matching works
 
@@ -130,6 +135,10 @@ Open **Import**, paste a link and press Import. The server fetches the page, loo
 - **Safety:** the server only fetches public web addresses, so a pasted link cannot be used to reach your own machine or network. See [SECURITY.md](SECURITY.md) for the details.
 - **Measuring it:** `npm run eval:import -w server -- urls.txt` tries your own list of links (see `server/scripts/example-urls.txt`) and prints how many import with a title, ingredients and a photo.
 
+## Where recipes come from
+
+You can type recipes in, import them from a link, load the bundled starter set, or (optionally) search TheMealDB. [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md) lists every source, its licence and what is bundled. Load the starter recipes from an empty library, or from a command: `npm run seed:starter -w server -- --dir ./data`.
+
 ## Security and privacy
 
 See [SECURITY.md](SECURITY.md). In short: your recipes and images stay on your machine, nothing is sent anywhere except the requests you start when importing from a link, and this repository never contains user data (databases, images and `.env` files are git-ignored).
@@ -146,7 +155,7 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 4. Ingredient matching (done)
 5. URL import with SSRF protection (done)
 6. UI polish (done)
-7. Optional data sources
+7. Optional data sources (done)
 8. Authentication, hardening and cloud deployment guide (done)
 
 ## Licence

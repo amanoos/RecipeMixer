@@ -29,6 +29,10 @@ export interface Config {
   allowedHosts: string[];
   /** Whether the server may fetch recipe pages and images from user-supplied URLs. */
   urlImportEnabled: boolean;
+  /** Whether the optional TheMealDB search is available. Off unless the owner turns it on. */
+  mealdbEnabled: boolean;
+  /** TheMealDB API key. The free development key is "1"; a supporter key is a secret and is never logged. */
+  mealdbApiKey: string;
   isProduction: boolean;
 }
 
@@ -54,6 +58,16 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((value) => value === 'true'),
+  MEALDB_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  // The key goes into a URL path, so only plain characters are accepted. The message never repeats the value.
+  MEALDB_API_KEY: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_-]{1,64}$/, 'must be 1 to 64 letters, digits, "-" or "_"')
+    .default('1'),
   NODE_ENV: z.string().optional(),
 });
 
@@ -183,6 +197,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     cookieSecure: values.COOKIE_SECURE === 'true' ? 'always' : 'auto',
     allowedHosts: readAllowedHosts(values.ALLOWED_HOSTS),
     urlImportEnabled: values.URL_IMPORT_ENABLED,
+    mealdbEnabled: values.MEALDB_ENABLED,
+    mealdbApiKey: values.MEALDB_API_KEY,
     isProduction: values.NODE_ENV === 'production',
   };
 }

@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HttpError } from '../src/errors.js';
 import {
   createSafeFetcher,
+  isJsonType,
   FETCH_FAILED,
   MAX_PAGE_BYTES,
   parseTargetUrl,
@@ -428,4 +429,60 @@ describe('with the real network layer', () => {
     }
     expect(hits()).toBe(0);
   });
+});
+
+describe('fetchJson', () => {
+  const jsonResponse = (body: string, contentType = 'application/json; charset=utf-8'): RawResponse => ({
+    status: 200,
+    headers: { 'content-type': contentType },
+    stream: Readable.from([Buffer.from(body)]),
+  });
+
+  it('returns the parsed document and asks for JSON', async () => {
+    const { fetcher, send } = setup(() => jsonResponse('{"meals":[{"idMeal":"1"}]}'));
+    await expect(fetcher.fetchJson('https://api.example/x?y=1')).resolves.toEqual({ meals: [{ idMeal: '1' }] });
+    expect(send.mock.calls[0]![0].headers.Accept).toBe('application/json');
+  });
+
+  it('accepts a +json content type', async () => {
+    const { fetcher } = setup(() => jsonResponse('[1]', 'application/problem+json'));
+    await expect(fetcher.fetchJson('https://api.example/x')).resolves.toEqual([1]);
+  });
+
+  it('refuses an HTML answer, so a login or error page is never read as data', async () => {
+    const { fetcher } = setup(() => html('{"a":1}'));
+    const error = await failure(fetcher.fetchJson('https://api.example/x'));
+    expect(error.message).toBe(FETCH_FAILED);
+  });
+
+  it('refuses text that is not valid JSON, with the same generic message', async () => {
+    const { fetcher, rejected } = setup(() => jsonResponse('{"meals": [oops'));
+    const error = await failure(fetcher.fetchJson('https://api.example/x'));
+    expect(error.statusCode).toBe(502);
+    expect(error.message).toBe(FETCH_FAILED);
+    expect(rejected.join(' ')).toContain('not valid JSON');
+  });
+
+  it('refuses an answer larger than 1 MB', async () => {
+    const { fetcher } = setup(() => jsonResponse(`["${'a'.repeat(1_100_000)}"]`));
+    expect((await failure(fetcher.fetchJson('https://api.example/x'))).message).toBe(FETCH_FAILED);
+  });
+
+  it('applies the same address checks as every other fetch', async () => {
+    const { fetcher, send } = setup(() => jsonResponse('{}'), { 'api.example': [{ address: '10.0.0.5', family: 4 }] });
+    expect((await failure(fetcher.fetchJson('https://api.example/x'))).message).toBe(FETCH_FAILED);
+    expect(send).not.toHaveBeenCalled();
+  });
+});
+
+describe('isJsonType', () => {
+  it.each(['application/json', 'application/json; charset=utf-8', 'APPLICATION/JSON', 'application/problem+json', 'application/vnd.api+json; x=1'])(
+    'accepts %s',
+    (type) => expect(isJsonType(type)).toBe(true),
+  );
+
+  it.each(['text/html', 'text/html; charset=+json', 'text/json', 'application/jsonp', 'application/x-json', 'application/+json', '', 'application/json/evil'])(
+    'refuses %j',
+    (type) => expect(isJsonType(type)).toBe(false),
+  );
 });

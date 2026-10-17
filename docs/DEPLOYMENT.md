@@ -64,6 +64,8 @@ cannot. Keep the password in a password manager.
 | `ALLOWED_HOSTS` | none | Only used when no password is set: extra host names the app may be opened by. See below. |
 | `ALLOW_INSECURE_NO_AUTH` | `false` | Lets a non-loopback `HOST` start with no password. Only for setups where the port is otherwise protected. |
 | `URL_IMPORT_ENABLED` | `true` | `false` removes the "import from a link" feature entirely. |
+| `MEALDB_ENABLED` | `false` | `true` adds a TheMealDB search to the Import page. Read [DATA-SOURCES.md](DATA-SOURCES.md) first: the service is not open source and its free key is for personal use. |
+| `MEALDB_API_KEY` | `1` | The TheMealDB key (letters, digits, `-` and `_`). `1` is their free development key. A supporter key is a secret: keep it in the environment, never in the repository. |
 
 ## 1. On your own computer (the default)
 

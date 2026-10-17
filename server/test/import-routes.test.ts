@@ -34,6 +34,7 @@ function fakeFetcher(overrides: Partial<SafeFetcher> = {}) {
   return {
     fetchPage: vi.fn(overrides.fetchPage ?? (async () => page(RECIPE_PAGE))),
     fetchImage: vi.fn(overrides.fetchImage ?? defaultImage),
+    fetchJson: vi.fn(overrides.fetchJson ?? (async () => ({}))),
   };
 }
 
