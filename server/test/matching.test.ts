@@ -101,10 +101,47 @@ describe('ranking', () => {
     expect(result.items.map((item) => item.recipe.id)).toEqual([full, b, e, a]);
   });
 
-  it('prefers fewer missing ingredients at equal coverage', () => {
-    add('Many missing', ['egg', 'milk', 'flour', 'sugar']);
+  it('prefers fewer missing ingredients when the score and coverage are equal', () => {
+    // "egg" satisfies both egg lines of the first recipe: coverage 2 of 4 and everything you typed used, the same as 1 of 2.
+    add('Many missing', ['egg', 'egg yolk', 'flour', 'sugar']);
     add('Few missing', ['egg', 'flour']);
-    expect(titles(findMatches(db, query(['egg', 'milk'])))).toEqual(['Few missing', 'Many missing']);
+    const result = findMatches(db, query(['egg']));
+    expect(titles(result)).toEqual(['Few missing', 'Many missing']);
+    expect(result.items[0]!.score).toBe(result.items[1]!.score);
+  });
+
+  it('ranks a recipe that uses more of your ingredients above a small recipe that uses one', () => {
+    add('Tiny', ['rice', 'coconut milk', 'sugar']);
+    add('Fuller', ['rice', 'broccoli', 'beef', 'garlic', 'soy sauce', 'cornstarch', 'ginger', 'peanut', 'honey', 'chili']);
+    const result = findMatches(db, query(['rice', 'broccoli', 'beef']));
+    expect(titles(result)).toEqual(['Fuller', 'Tiny']);
+    // Tiny has the higher coverage (1 of 3 against 3 of 10), which used to put it first.
+    const [fuller, tiny] = result.items;
+    expect(tiny!.coverage).toBeGreaterThan(fuller!.coverage);
+    expect(fuller!.score).toBeGreaterThan(tiny!.score);
+  });
+
+  it('reports a score between 0 and 1 that is the harmonic mean of coverage and use of your ingredients', () => {
+    add('Soup', ['onion', 'carrot', 'celery', 'broth']);
+    const [item] = findMatches(db, query(['onion', 'carrot', 'potato'])).items;
+    // coverage 2 of 4 = 0.5; 2 of your 3 ingredients used = 2/3
+    expect(item!.coverage).toBeCloseTo(0.5);
+    expect(item!.score).toBeCloseTo((2 * 0.5 * (2 / 3)) / (0.5 + 2 / 3));
+  });
+
+  it('does not let a staple you typed lower the score when staples are assumed', () => {
+    add('Omelette', ['egg', 'butter', 'salt']);
+    const without = findMatches(db, query(['egg', 'butter'])).items[0]!.score;
+    const withSalt = findMatches(db, query(['egg', 'butter', 'salt'])).items[0]!.score;
+    expect(withSalt).toBe(without);
+    expect(without).toBe(1);
+  });
+
+  it('counts a staple you typed when staples are not assumed', () => {
+    add('Omelette', ['egg', 'butter', 'salt']);
+    const result = findMatches(db, query(['egg', 'salt'], { staples: false }));
+    expect(result.items[0]!.matchedCount).toBe(2);
+    expect(result.items[0]!.score).toBeCloseTo((2 * (2 / 3) * 1) / (2 / 3 + 1));
   });
 
   it('applies the minimum coverage', () => {
@@ -171,5 +208,24 @@ describe('inputs', () => {
   it('copes with the maximum number of ingredients', () => {
     const many = Array.from({ length: 30 }, (_, n) => `ingredient${'abcdefghijklmnopqrstuvwxyzabcd'[n]}`);
     expect(() => findMatches(db, query(many))).not.toThrow();
+  });
+});
+
+describe('general ingredient names', () => {
+  it('finds a recipe that only names a kind of what you typed, and the other way round', () => {
+    add('Stir fry', ['1 lb flank steak, thinly sliced', '2 cups broccoli']);
+    add('Pie', ['2 cups shredded cheese', '1 pie crust']);
+    expect(titles(findMatches(db, query(['beef'])))).toEqual(['Stir fry']);
+    expect(titles(findMatches(db, query(['feta'])))).toEqual(['Pie']);
+  });
+
+  it('does not let one kind stand in for another', () => {
+    add('Greek salad', ['4 oz feta, crumbled', '2 tomatoes']);
+    expect(titles(findMatches(db, query(['cheddar'])))).toEqual([]);
+  });
+
+  it('does not match a product that only contains the general word', () => {
+    add('Soup', ['4 cups beef broth', '1 onion']);
+    expect(titles(findMatches(db, query(['beef'])))).toEqual([]);
   });
 });

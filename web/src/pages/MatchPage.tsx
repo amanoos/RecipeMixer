@@ -70,7 +70,7 @@ export function MatchPage() {
       <div className="space-y-1">
         <h1 className="text-xl font-semibold">What can I cook?</h1>
         <p className="text-sm text-muted-foreground">
-          Add what is in your fridge. Your recipes are ranked by how much of each you can already make.
+          Add what is in your fridge. Recipes come first when they use most of what you have and you can already make most of them.
         </p>
       </div>
 

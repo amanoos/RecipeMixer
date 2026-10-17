@@ -151,3 +151,37 @@ describe('seed-starter command', () => {
     expect(second.stdout).toContain(`${total} already there`);
   });
 });
+
+describe('ranking on the real starter recipes', () => {
+  function search(...have: string[]) {
+    const db = freshDb();
+    loadStarterRecipes(db);
+    const result = findMatches(db, { i: have, staples: true, minCoverage: 0, limit: 24, offset: 0 });
+    return result.items.map((item) => item.recipe.title);
+  }
+
+  it('puts the beef and broccoli stir fry first for beef, broccoli and rice, and a three-line rice dish below the recipes that use more of it', () => {
+    const titles = search('beef', 'broccoli', 'rice');
+    expect(titles[0]).toBe('Beef and Broccoli Stir Fry');
+    // Coconut Rice used to be first (1 of 3 lines); it now ranks below the dishes that use two or three of the ingredients.
+    expect(titles.indexOf('Coconut Rice')).toBeGreaterThan(titles.indexOf('Baked Stuffed Peppers'));
+    expect(titles.indexOf('Baked Stuffed Peppers')).toBeGreaterThan(0);
+  });
+
+  it('puts the spinach and feta quiche first for eggs, spinach and cheese', () => {
+    expect(search('eggs', 'spinach', 'cheese')[0]).toBe('Spinach and Feta Quiche');
+  });
+
+  it('offers the tomato soup and the garlic spaghetti first for tomato, pasta, garlic and olive oil', () => {
+    // pasta now reaches spaghetti, so the spaghetti dish ties with the soup instead of falling behind it
+    expect(search('tomato', 'pasta', 'garlic', 'olive oil').slice(0, 2).sort()).toEqual(['Garlic Olive Oil Spaghetti', 'Simple Tomato Soup']);
+  });
+
+  it.each([
+    [['chicken', 'rice', 'onion', 'garlic'], 'Chicken and Rice Skillet'],
+    [['potato', 'onion', 'eggs'], 'Spanish Tortilla'],
+    [['chickpeas', 'coconut milk', 'onion'], 'Chickpea Curry'],
+  ])('keeps the obvious first result for %j', (have, first) => {
+    expect(search(...have)[0]).toBe(first);
+  });
+});

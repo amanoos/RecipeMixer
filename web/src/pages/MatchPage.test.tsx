@@ -38,6 +38,7 @@ function item(id: number, title: string, matched: number, total: number, missing
     matchedCount: matched,
     totalCount: total,
     coverage: matched / total,
+    score: matched / total,
     matched: [],
     missing,
   };

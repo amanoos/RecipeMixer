@@ -136,3 +136,20 @@ export const UNCOUNTABLE_WORDS: readonly string[] = [
   'asparagus', 'brussels', 'citrus', 'couscous', 'cress', 'grits', 'hummus', 'lemongrass', 'molasses',
   'swiss', 'watercress',
 ];
+
+/**
+ * General ingredient names and the specific kinds they stand for, so that "beef" in your fridge satisfies
+ * "flank steak" in a recipe, and "feta" satisfies a recipe's plain "cheese". Two specific kinds never satisfy
+ * each other (cheddar is not feta). Names are in the normalised form: singular, lower case, no preparation words.
+ *
+ * Only list kinds whose name does not already contain the general word: "ground beef" and "beef brisket" match
+ * "beef" by the ordinary word rule. A kind is matched when the recipe line contains all of its words, so keep each
+ * entry specific enough not to appear inside another product ("steak" alone would also match "salmon steak").
+ */
+export const GENERIC_KINDS: ReadonlyMap<string, readonly string[]> = new Map([
+  ['beef', ['brisket', 'chuck', 'flank steak', 'ribeye', 'short rib', 'sirloin', 'skirt steak']],
+  ['cheese', ['cheddar', 'feta', 'gruyere', 'mozzarella', 'parmesan', 'ricotta', 'swiss']],
+  ['fish', ['cod', 'halibut', 'salmon', 'tilapia', 'trout', 'tuna']],
+  ['pasta', ['fusilli', 'linguine', 'macaroni', 'penne', 'rigatoni', 'spaghetti']],
+  ['pork', ['ham']],
+]);

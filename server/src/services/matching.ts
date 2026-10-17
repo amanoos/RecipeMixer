@@ -1,7 +1,7 @@
 import type { Db } from '../db/connection.js';
 import { getRecipeSummaries } from '../db/recipes.js';
 import type { MatchItem, MatchQuery, MatchResponse } from '../schemas/match.js';
-import { ingredientsMatch, isStapleLine, normalizeIngredient, wordsOf } from './ingredients.js';
+import { ingredientsMatch, isStapleLine, isStapleName, normalizeIngredient, relatedWords, wordsOf } from './ingredients.js';
 
 /** Stage 1 keeps this many recipes (best word overlap first); stage 2 scores them precisely. */
 const MAX_CANDIDATES = 500;
@@ -20,6 +20,7 @@ interface Scored {
   matched: string[];
   missing: string[];
   coverage: number;
+  score: number;
 }
 
 const placeholders = (count: number): string => Array.from({ length: count }, () => '?').join(',');
@@ -64,18 +65,36 @@ function loadLines(db: Db, recipeIds: number[]): Map<number, Line[]> {
   return byRecipe;
 }
 
+/** Harmonic mean: high only when both numbers are high, so neither a tiny recipe nor a huge one wins on one match. */
+const harmonicMean = (a: number, b: number): number => (a + b === 0 ? 0 : (2 * a * b) / (a + b));
+
 function score(lines: Line[], userNames: string[], assumeStaples: boolean): Scored | null {
   // Lines with no usable ingredient name (section headers, junk) count for nothing either way.
   const counted = lines.filter((line) => line.names.length > 0 && !(assumeStaples && isStapleLine(line.names)));
   if (counted.length === 0) return null;
 
+  // Staples you typed are left out of the "how much of my list is used" count when staples are assumed, because the
+  // recipe lines they would satisfy are not counted: typing salt must not lower a score.
+  const mine = assumeStaples ? userNames.filter((name) => !isStapleName(name)) : userNames;
+  const used = new Set<string>();
+
   const matched: string[] = [];
   const missing: string[] = [];
   for (const line of counted) {
-    const satisfied = line.names.some((name) => userNames.some((user) => ingredientsMatch(user, name)));
+    let satisfied = false;
+    for (const user of mine) {
+      if (line.names.some((name) => ingredientsMatch(user, name))) {
+        satisfied = true;
+        used.add(user);
+      }
+    }
+    if (!satisfied) satisfied = line.names.some((name) => userNames.some((user) => ingredientsMatch(user, name)));
     (satisfied ? matched : missing).push(line.raw);
   }
   if (matched.length === 0) return null;
+
+  const coverage = matched.length / counted.length;
+  const usage = mine.length === 0 ? coverage : used.size / mine.length;
 
   const first = lines[0] as Line;
   return {
@@ -83,13 +102,15 @@ function score(lines: Line[], userNames: string[], assumeStaples: boolean): Scor
     rating: first.rating,
     matched,
     missing,
-    coverage: matched.length / counted.length,
+    coverage,
+    score: harmonicMean(coverage, usage),
   };
 }
 
-/** Best coverage first, then fewest missing, then own rating (unrated last), then newest. */
+/** Best score first, then coverage, then fewest missing, then own rating (unrated last), then newest. */
 function compare(a: Scored, b: Scored): number {
   return (
+    b.score - a.score ||
     b.coverage - a.coverage ||
     a.missing.length - b.missing.length ||
     (b.rating ?? 0) - (a.rating ?? 0) ||
@@ -116,7 +137,8 @@ export function findMatches(db: Db, query: MatchQuery): MatchResponse {
     for (const name of names) if (!userNames.includes(name)) userNames.push(name);
   }
 
-  const words = [...new Set(userNames.flatMap(wordsOf))].slice(0, MAX_LOOKUP_WORDS);
+  // A general name (beef) must also find recipes that only name a kind of it (flank steak), and the other way round.
+  const words = [...new Set(userNames.flatMap((name) => [...wordsOf(name), ...relatedWords(name)]))].slice(0, MAX_LOOKUP_WORDS);
   if (words.length === 0) return emptyResponse(query, usedIngredients, ignored);
 
   const candidateIds = findCandidateIds(db, words);
@@ -142,6 +164,7 @@ export function findMatches(db: Db, query: MatchQuery): MatchResponse {
       matchedCount: entry.matched.length,
       totalCount: entry.matched.length + entry.missing.length,
       coverage: entry.coverage,
+      score: entry.score,
       matched: entry.matched,
       missing: entry.missing,
     });

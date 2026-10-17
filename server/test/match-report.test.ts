@@ -31,8 +31,8 @@ describe('renderMatchReport', () => {
   it('lists the best matches for each set as a Markdown table', () => {
     const report = renderMatchReport(db, [['egg', 'bread', 'butter']], true);
     expect(report).toContain('### Set 1: egg, bread, butter');
-    expect(report).toContain('| # | Recipe | You have | Coverage | Missing |');
-    expect(report).toContain('| 1 | Fried eggs on toast | 3 of 3 | 100% | - |');
+    expect(report).toContain('| # | Recipe | You have | Coverage | Score | Missing |');
+    expect(report).toContain('| 1 | Fried eggs on toast | 3 of 3 | 100% | 1.00 | - |');
   });
 
   it('numbers several sets and limits each to the top results', () => {
