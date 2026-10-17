@@ -23,11 +23,14 @@ RUN npm ci --omit=dev --ignore-scripts -w server \
  && node -e "require('sharp')({ create: { width: 2, height: 2, channels: 3, background: 'red' } }).webp().toBuffer().then(() => console.log('sharp ok'))"
 
 FROM node:25-bookworm-slim AS runtime
+# A lookup of a slow or dead host name occupies one of Node's helper threads (default 4) until it gives up,
+# which could otherwise starve logins and image work. More threads keep that from happening.
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3210 \
     DATA_DIR=/data \
-    WEB_DIST=/app/web/dist
+    WEB_DIST=/app/web/dist \
+    UV_THREADPOOL_SIZE=16
 WORKDIR /app
 COPY --from=deps /app ./
 COPY --from=build /app/server/dist ./server/dist

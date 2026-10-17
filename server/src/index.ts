@@ -27,6 +27,11 @@ async function main(): Promise<void> {
   process.once('SIGTERM', () => void shutdown('SIGTERM'));
 
   await app.listen({ host: config.host, port: config.port });
+  app.log.info(
+    config.appPassword === null
+      ? 'no password set: the app is open to anyone who can reach this address'
+      : 'login is required: the API and photos need the app password',
+  );
 }
 
 main().catch((err: unknown) => {

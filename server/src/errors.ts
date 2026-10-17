@@ -13,6 +13,8 @@ export class HttpError extends Error {
 }
 
 export const badRequest = (message: string): HttpError => new HttpError(400, message);
+export const unauthorized = (message: string): HttpError => new HttpError(401, message);
+export const forbidden = (message: string): HttpError => new HttpError(403, message);
 export const notFound = (message = 'Not Found'): HttpError => new HttpError(404, message);
 export const payloadTooLarge = (message: string): HttpError => new HttpError(413, message);
 export const unsupportedMediaType = (message: string): HttpError => new HttpError(415, message);

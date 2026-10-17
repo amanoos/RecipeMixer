@@ -33,3 +33,6 @@ Thumbs.db
 
 # demo libraries made by npm run seed:demo
 demo-data/
+
+# deployment secrets (the password file for deploy/docker-compose.caddy.yml)
+deploy/secrets/

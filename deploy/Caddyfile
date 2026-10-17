@@ -1,0 +1,9 @@
+# HTTPS in front of RecipeMixer, using Caddy (https://caddyserver.com).
+#
+# SITE_ADDRESS is the name people type: your domain (for example recipes.example.com), which Caddy gets a free
+# certificate for automatically, or "localhost" to try this out on your own machine with a local certificate.
+{$SITE_ADDRESS:localhost} {
+	# Caddy adds X-Forwarded-For, X-Forwarded-Proto and X-Forwarded-Host for the app, and replaces any such
+	# headers a visitor tries to send. The app believes them only because TRUST_PROXY names this proxy.
+	reverse_proxy app:3210
+}

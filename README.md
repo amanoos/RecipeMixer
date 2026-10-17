@@ -15,6 +15,7 @@ Available now:
 - **Search** your recipes as you type, across title, cuisine, description and ingredients (word forms and accents are matched, and the best match comes first), filter by cuisine and minimum rating, and sort by best match, newest, highest rated or title. Rate a recipe with one click on its page
 - **What can I cook?** Enter the ingredients you have and see your recipes ranked by how much of each you can already make, with the missing ingredients listed. A partial match is fine, and the search lives in the page URL so it can be bookmarked
 - Browse, edit and delete recipes in a modern UI (React, Tailwind CSS, shadcn/ui) with light and dark themes. It fits any screen from a 320 px phone up, uses comfortable touch sizes on touch devices, stays still while loading, has a "Skip to content" link, a title for every page and keyboard focus that follows you from page to page, and honours the system setting for reduced motion
+- **Private by design:** by default it only answers on your own computer. To use it from your phone or from anywhere else, set a password (`APP_PASSWORD_FILE`) and put HTTPS in front; every recipe, search and photo is then behind the login. The [deployment guide](docs/DEPLOYMENT.md) covers free options, including private access with Tailscale
 - Everything open source, no accounts, no telemetry, no paid services
 
 - **Import from a link:** paste the address of a recipe page and RecipeMixer reads the page's standard `schema.org` recipe data (title, ingredients, steps, cuisine, photo), shows it in the normal form for you to check, and saves it with the photo. Nothing is saved until you press Save
@@ -48,7 +49,7 @@ npm start
 
 The host needs a persistent disk for `DATA_DIR`, because the database and images are stored there. Serverless or stateless platforms are not a good fit.
 
-> **Do not expose the app to the internet yet.** There is no login. Password authentication is planned (Phase 8). Until then the server only listens on `127.0.0.1` and refuses to start on any other address unless you set `ALLOW_INSECURE_NO_AUTH=true`, which you should do only when something else protects the port. The provided `docker-compose.yml` does this safely by publishing the port on `127.0.0.1` only.
+> **Before you expose the app, read [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).** On its own computer the app needs no password: it listens on `127.0.0.1` only and refuses other web addresses. To listen anywhere else it needs a strong password (`APP_PASSWORD` or, better, `APP_PASSWORD_FILE`) or the explicit opt-in `ALLOW_INSECURE_NO_AUTH=true`, which exists for setups where the port is protected another way. The provided `docker-compose.yml` publishes the port on `127.0.0.1` only. The app does not do HTTPS itself: put a reverse proxy or tunnel in front of any public address.
 
 ## Configuration
 
@@ -56,11 +57,15 @@ Settings come from environment variables (see [`.env.example`](.env.example)). N
 
 | Variable | Default | Description |
 |---|---|---|
-| `HOST` | `127.0.0.1` | Address to listen on. Anything other than loopback requires `ALLOW_INSECURE_NO_AUTH=true`. |
+| `HOST` | `127.0.0.1` | Address to listen on. Anything other than loopback requires a password or `ALLOW_INSECURE_NO_AUTH=true`. |
+| `APP_PASSWORD` / `APP_PASSWORD_FILE` | none | The shared password (at least 12 characters), or the path of a file that holds it. Set only one. With a password, the API and photos need a login. |
+| `TRUST_PROXY` | `false` | The address of your reverse proxy (an IP, a range, or `loopback`/`uniquelocal`), so the real client address is used for the login limits. |
+| `COOKIE_SECURE` | `auto` | `true` always marks the login cookie `Secure`. |
+| `ALLOWED_HOSTS` | none | With no password: extra host names the app may be opened by. |
 | `PORT` | `3210` | Port to listen on. |
 | `DATA_DIR` | `./data` | Where the SQLite database (and later, images) are stored. |
 | `LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent`. |
-| `ALLOW_INSECURE_NO_AUTH` | `false` | Explicit opt-in to listen beyond loopback without authentication. |
+| `ALLOW_INSECURE_NO_AUTH` | `false` | Explicit opt-in to listen beyond loopback without a password. Not needed when a password is set. |
 | `URL_IMPORT_ENABLED` | `true` | Set to `false` to turn off fetching pages and photos from links completely. |
 | `WEB_DIST` | built-in path | Folder containing the built web app. Set automatically in Docker. |
 
@@ -87,7 +92,8 @@ JSON over HTTP on the same port as the web app. Errors look like `{"error": "mes
 
 | Method and path | Purpose |
 |---|---|
-| `GET /api/health` | Server and database status |
+| `GET /api/health` | Server status (the schema version too, once logged in). Public |
+| `GET`, `POST`, `DELETE /api/session` | Who is logged in, log in (`{"password": "..."}`), log out. Public. Every other `/api` route needs a login when a password is set |
 | `GET /api/recipes?limit=24&offset=0` | List recipes (`limit` 1 to 100). Optional `q` (search text), `cuisine`, `minRating` (1 to 5) and `sort` (`relevance`, `newest`, `rating`, `title`); newest first by default, best match first when searching |
 | `GET /api/cuisines` | Cuisines in use with how many recipes each has |
 | `PATCH /api/recipes/:id/rating` | Set your rating (`{"rating": 4}`) or clear it (`{"rating": null}`) |
@@ -141,7 +147,7 @@ Recipes and images you import belong to their original authors. RecipeMixer stor
 5. URL import with SSRF protection (done)
 6. UI polish (done)
 7. Optional data sources
-8. Authentication, hardening and cloud deployment guide
+8. Authentication, hardening and cloud deployment guide (done)
 
 ## Licence
 

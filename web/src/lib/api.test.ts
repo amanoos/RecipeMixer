@@ -5,10 +5,14 @@ import {
   deleteImage,
   deleteRecipe,
   getRecipe,
+  getSession,
   importImageFromUrl,
   listCuisines,
   listRecipes,
+  login,
+  logout,
   matchRecipes,
+  onUnauthorized,
   previewImport,
   setRating,
   suggestIngredients,
@@ -234,5 +238,70 @@ describe('import api', () => {
     expect(url).toBe('/api/recipes/4/image/from-url');
     expect(init.method).toBe('POST');
     expect(JSON.parse(init.body as string)).toEqual({ url: 'https://food.example/a.jpg' });
+  });
+});
+
+describe('session api', () => {
+  it('asks who is logged in', async () => {
+    const mock = stubFetch(ok({ authRequired: true, authenticated: false }));
+    await expect(getSession()).resolves.toEqual({ authRequired: true, authenticated: false });
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/session');
+  });
+
+  it('logs in with the password in the body only, and logs out with a DELETE', async () => {
+    const mock = stubFetch({ ok: true, status: 204, json: async () => Promise.reject(new Error('no body')) });
+    await login('correct-horse-battery-staple');
+    const [loginUrl, loginInit] = mock.mock.calls[0] as [string, RequestInit];
+    expect(loginUrl).toBe('/api/session');
+    expect(loginInit.method).toBe('POST');
+    expect(JSON.parse(loginInit.body as string)).toEqual({ password: 'correct-horse-battery-staple' });
+
+    await logout();
+    const [logoutUrl, logoutInit] = mock.mock.calls[1] as [string, RequestInit];
+    expect(logoutUrl).toBe('/api/session');
+    expect(logoutInit.method).toBe('DELETE');
+  });
+
+  it('maps a wrong password and a lockout to ApiError with the server message', async () => {
+    stubFetch(fail(401, { error: 'Incorrect password' }));
+    await expect(login('x')).rejects.toMatchObject({ status: 401, message: 'Incorrect password' });
+    stubFetch(fail(429, { error: 'Too many wrong passwords. Try again in 15 minutes.' }));
+    await expect(login('x')).rejects.toMatchObject({ status: 429 });
+  });
+});
+
+describe('an ended session', () => {
+  it('tells the listeners when any call is answered with 401, and still throws the error', async () => {
+    const listener = vi.fn();
+    const stop = onUnauthorized(listener);
+    stubFetch(fail(401, { error: 'Login required' }));
+    await expect(listRecipes()).rejects.toMatchObject({ status: 401 });
+    await expect(getRecipe(1)).rejects.toMatchObject({ status: 401 });
+    expect(listener).toHaveBeenCalledTimes(2);
+    stop();
+  });
+
+  it('does not treat the login form\'s own 401 (a wrong password) as an ended session', async () => {
+    const listener = vi.fn();
+    const stop = onUnauthorized(listener);
+    stubFetch(fail(401, { error: 'Incorrect password' }));
+    await expect(login('x')).rejects.toMatchObject({ status: 401 });
+    expect(listener).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it('does not notify for other errors, and stops notifying after the listener is removed', async () => {
+    const listener = vi.fn();
+    const stop = onUnauthorized(listener);
+    stubFetch(fail(404, { error: 'Not Found' }));
+    await expect(getRecipe(1)).rejects.toMatchObject({ status: 404 });
+    stubFetch(fail(403, { error: 'Cross-site requests are not allowed.' }));
+    await expect(listRecipes()).rejects.toMatchObject({ status: 403 });
+    expect(listener).not.toHaveBeenCalled();
+
+    stop();
+    stubFetch(fail(401, { error: 'Login required' }));
+    await expect(listRecipes()).rejects.toMatchObject({ status: 401 });
+    expect(listener).not.toHaveBeenCalled();
   });
 });

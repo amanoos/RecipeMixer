@@ -15,3 +15,7 @@ data
 *.log
 Dockerfile
 docker-compose.yml
+
+# never send local secrets or demo data to the Docker build
+deploy/secrets
+demo-data

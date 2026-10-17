@@ -17,8 +17,8 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ HOST: '0.0.0.0' })).toThrow(/Refusing to bind/);
   });
 
-  it('does not treat a password setting as authentication yet', () => {
-    expect(() => loadConfig({ HOST: '0.0.0.0', APP_PASSWORD: 'x' })).toThrow(/Refusing to bind/);
+  it('does not let a weak password open up a non-loopback host', () => {
+    expect(() => loadConfig({ HOST: '0.0.0.0', APP_PASSWORD: 'x' })).toThrow(/at least 12 characters/);
   });
 
   it('accepts a non-loopback host with ALLOW_INSECURE_NO_AUTH=true', () => {

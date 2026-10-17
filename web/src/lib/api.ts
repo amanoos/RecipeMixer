@@ -20,10 +20,25 @@ export class ApiError extends Error {
   }
 }
 
+type UnauthorizedListener = () => void;
+const unauthorizedListeners = new Set<UnauthorizedListener>();
+
+/** Calls the listener when the server says the login has ended (a 401 from anywhere except the login itself). */
+export function onUnauthorized(listener: UnauthorizedListener): () => void {
+  unauthorizedListeners.add(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
 
   if (!response.ok) {
+    // A wrong password is also a 401, but that is the login form's own business, not an expired session.
+    if (response.status === 401 && !url.startsWith('/api/session')) {
+      for (const listener of unauthorizedListeners) listener();
+    }
     let message = `Request failed (${response.status})`;
     try {
       const body = (await response.json()) as { error?: unknown };
@@ -139,4 +154,23 @@ export function previewImport(url: string, signal?: AbortSignal): Promise<Import
 /** Asks the server to download a photo from a link and attach it to a saved recipe. */
 export function importImageFromUrl(id: number, url: string): Promise<RecipeDetail> {
   return request<RecipeDetail>(`/api/recipes/${id}/image/from-url`, jsonRequest('POST', { url }));
+}
+
+export interface SessionStatus {
+  /** Whether the server has a password set. */
+  authRequired: boolean;
+  authenticated: boolean;
+}
+
+export function getSession(signal?: AbortSignal): Promise<SessionStatus> {
+  return request<SessionStatus>('/api/session', { signal });
+}
+
+/** Logs in; the server answers with a cookie the browser keeps, so there is nothing to store here. */
+export function login(password: string): Promise<void> {
+  return request<void>('/api/session', jsonRequest('POST', { password }));
+}
+
+export function logout(): Promise<void> {
+  return request<void>('/api/session', { method: 'DELETE' });
 }

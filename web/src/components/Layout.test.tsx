@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AuthContext } from '@/lib/auth';
 import { apiResponse, stubFetch } from '@/test-utils';
 import { Layout } from './Layout';
 
@@ -72,5 +73,47 @@ describe('Layout', () => {
     const dark = document.documentElement.classList.contains('dark');
     await user.click(screen.getByRole('button', { name: /switch to (dark|light) theme/i }));
     expect(document.documentElement.classList.contains('dark')).toBe(!dark);
+  });
+});
+
+describe('Layout log out', () => {
+  function renderWithAuth(authRequired: boolean, logout: () => Promise<void>) {
+    stubFetch({ 'GET /api/health': () => apiResponse({ status: 'ok', schemaVersion: 5 }) });
+    return render(
+      <AuthContext.Provider value={{ authRequired, logout }}>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route index element={<h1>Home page</h1>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+  }
+
+  it('has no log out button when there is no password', () => {
+    renderWithAuth(false, async () => undefined);
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
+  });
+
+  it('has a log out button in the navigation when a password is set, and uses it', async () => {
+    const user = userEvent.setup();
+    const logout = vi.fn(async () => undefined);
+    renderWithAuth(true, logout);
+
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    await user.click(within(nav).getByRole('button', { name: 'Log out' }));
+    expect(logout).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('says so, rather than pretending, when the server could not be told', async () => {
+    const user = userEvent.setup();
+    renderWithAuth(true, async () => {
+      throw new Error('network');
+    });
+    await user.click(screen.getByRole('button', { name: 'Log out' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not log out');
   });
 });

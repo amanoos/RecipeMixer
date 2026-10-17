@@ -4,13 +4,14 @@ services:
     image: recipemixer:local
     ports:
       # Published on the loopback interface ONLY. Do not change 127.0.0.1 to 0.0.0.0
-      # (or remove it) until authentication exists: the app has no login yet.
+      # (or remove it) unless you have read docs/DEPLOYMENT.md: this file sets no password.
       - "127.0.0.1:3210:3210"
     environment:
       LOG_LEVEL: info
       # The app must listen on 0.0.0.0 inside the container for Docker to forward traffic,
       # so it needs this explicit opt-in. It is safe ONLY because of the 127.0.0.1-only
-      # port mapping above.
+      # port mapping above. To reach the app from anywhere else, do not change that mapping:
+      # follow docs/DEPLOYMENT.md (a password, HTTPS in front, and deploy/docker-compose.caddy.yml).
       ALLOW_INSECURE_NO_AUTH: "true"
     volumes:
       - recipemixer-data:/data

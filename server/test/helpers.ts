@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import sharp from 'sharp';
-import { buildApp } from '../src/app.js';
+import { buildApp, type AppDeps } from '../src/app.js';
 import type { Config } from '../src/config.js';
 import { openMemoryDatabase } from '../src/db/connection.js';
 import { migrate } from '../src/db/migrate.js';
@@ -17,6 +17,10 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     webDist: path.join(os.tmpdir(), 'recipemixer-test-no-web-build'),
     logLevel: 'silent',
     allowInsecureNoAuth: false,
+    appPassword: null,
+    trustProxy: false,
+    cookieSecure: 'auto',
+    allowedHosts: [],
     urlImportEnabled: true,
     isProduction: false,
     ...overrides,
@@ -26,10 +30,12 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
 export async function makeApp(
   overrides: Partial<Config> = {},
   rateLimitMax?: number,
+  clock?: () => number,
+  extra: Partial<Pick<AppDeps, 'logStream' | 'onRoute'>> = {},
 ): Promise<FastifyInstance> {
   const db = openMemoryDatabase();
   migrate(db);
-  return buildApp({ config: testConfig(overrides), db, rateLimitMax });
+  return buildApp({ config: testConfig(overrides), db, rateLimitMax, clock, ...extra });
 }
 
 export function makeTempDir(prefix = 'recipemixer-test-'): string {

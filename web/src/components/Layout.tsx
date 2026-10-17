@@ -1,9 +1,10 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
-import { ChefHat, Moon, Plus, Sun } from 'lucide-react';
+import { ChefHat, LogOut, Moon, Plus, Sun } from 'lucide-react';
 import { RouteFocus } from '@/components/RouteFocus';
 import { ServerStatus } from '@/components/ServerStatus';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 type Theme = 'light' | 'dark';
@@ -42,6 +43,18 @@ function skipToContent(event: MouseEvent<HTMLAnchorElement>) {
 
 export function Layout() {
   const [theme, setTheme] = useState<Theme>(initialTheme);
+  const { authRequired, logout } = useAuth();
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
+  async function handleLogout() {
+    setLogoutError(null);
+    try {
+      await logout();
+    } catch {
+      // Say so rather than pretending: if the server was not reached the session is still open.
+      setLogoutError('Could not log out. Check your connection and try again.');
+    }
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -96,7 +109,18 @@ export function Layout() {
               <Plus aria-hidden="true" />
               New recipe
             </Link>
+            {authRequired && (
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut aria-hidden="true" />
+                Log out
+              </Button>
+            )}
           </nav>
+          {logoutError && (
+            <p role="alert" className="w-full text-sm text-destructive">
+              {logoutError}
+            </p>
+          )}
         </div>
       </header>
 

@@ -11,10 +11,14 @@ for (const [network, prefix] of [
   ['10.0.0.0', 8],
   ['100.64.0.0', 10],
   ['127.0.0.0', 8],
+  ['168.63.129.16', 32], // Azure's internal host service, reached from inside Azure VMs although it looks public
   ['169.254.0.0', 16],
   ['172.16.0.0', 12],
   ['192.0.0.0', 24],
   ['192.0.2.0', 24],
+  ['192.31.196.0', 24], // AS112 (special-purpose DNS)
+  ['192.52.193.0', 24], // AS112
+  ['192.175.48.0', 24], // AS112
   ['192.88.99.0', 24],
   ['192.168.0.0', 16],
   ['198.18.0.0', 15],
@@ -32,7 +36,8 @@ GLOBAL_UNICAST_V6.addSubnet('2000::', 3, 'ipv6');
 
 const BLOCKED_V6 = new net.BlockList();
 for (const [network, prefix] of [
-  ['2001::', 32], // Teredo
+  ['2001::', 23], // IETF protocol assignments: Teredo, TURN/PCP anycast, AMT, AS112, ORCHID
+  ['2620:4f:8000::', 48], // AS112 (IPv6)
   ['2001:db8::', 32], // documentation
   ['2002::', 16], // 6to4 (embeds an IPv4 address)
   ['3fff::', 20], // documentation
