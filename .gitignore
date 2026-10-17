@@ -37,3 +37,6 @@ demo-data/
 
 # deployment secrets (the password file for deploy/docker-compose.caddy.yml)
 deploy/secrets/
+
+# local compose override (home-network access); holds no secrets but is specific to this machine
+docker-compose.override.yml
