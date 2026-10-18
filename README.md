@@ -19,6 +19,7 @@ Available now:
 - **Private by design:** by default it only answers on your own computer. To use it from your phone or from anywhere else, set a password (`APP_PASSWORD_FILE`) and put HTTPS in front; every recipe, search and photo is then behind the login. The [deployment guide](docs/DEPLOYMENT.md) covers free options, including private access with Tailscale
 - Everything open source, no accounts, no telemetry, no paid services
 
+- **Find a photo:** press the button on a recipe (or on the recipe form) and the app searches Wikimedia Commons and Openverse for openly licensed photos matching the title, shows up to five, and saves the one you pick, with credit to its author shown under the photo. Only the title's words leave your computer, and only when you press the button (your server then downloads the previews from Wikimedia's and Flickr's picture servers)
 - **Starter recipes:** an empty library offers a **Load starter recipes** button that adds about forty simple recipes written for this project and free to use (CC0). Nothing is added twice
 - **Import from a link:** paste the address of a recipe page and RecipeMixer reads the page's standard `schema.org` recipe data (title, ingredients, steps, cuisine, photo), shows it in the normal form for you to check, and saves it with the photo. Nothing is saved until you press Save
 
@@ -69,6 +70,8 @@ Settings come from environment variables (see [`.env.example`](.env.example)). N
 | `LOG_LEVEL` | `info` | `trace`, `debug`, `info`, `warn`, `error`, `fatal` or `silent`. |
 | `ALLOW_INSECURE_NO_AUTH` | `false` | Explicit opt-in to listen beyond loopback without a password. Not needed when a password is set. |
 | `URL_IMPORT_ENABLED` | `true` | Set to `false` to turn off fetching pages and photos from links completely. |
+| `IMAGE_SEARCH_ENABLED` | `true` | Set to `false` to remove the photo search. See [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). |
+| `IMAGE_SEARCH_ALLOW_NONCOMMERCIAL` | `false` | Also offer photos under non-commercial licences (personal use). |
 | `MEALDB_ENABLED` | `false` | Set to `true` to add a TheMealDB search to the Import page. See [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). |
 | `MEALDB_API_KEY` | `1` | TheMealDB key. `1` is their free development key; a supporter key stays in the environment only. |
 | `WEB_DIST` | built-in path | Folder containing the built web app. Set automatically in Docker. |
@@ -113,6 +116,8 @@ JSON over HTTP on the same port as the web app. Errors look like `{"error": "mes
 | `POST /api/import/preview` | Fetch a recipe page and return what was read (`{"url": "https://..."}`); saves nothing. Limited to 10 calls a minute |
 | `POST /api/recipes/:id/image/from-url` | Download a photo from a link, re-encode it like an upload and attach it to a saved recipe |
 | `POST /api/starter-recipes` | Add the bundled starter recipes that are not in the library yet (repeating it adds nothing) |
+| `GET /api/image-search?q=tomato+soup` | Up to five openly licensed photos for some words, each with a small inline picture, its credit and a signed token. 404 when `IMAGE_SEARCH_ENABLED=false`. Limited to 10 calls a minute |
+| `POST /api/recipes/:id/image/from-search` | Make a found photo the recipe's photo (`{"token": "..."}`, the token from the search; an address is refused) and store its credit |
 | `GET /api/mealdb/search?q=pasta`, `GET /api/mealdb/meals/:id` | Only when `MEALDB_ENABLED=true`, otherwise 404. Search TheMealDB by name, and read one meal as a draft to review. Each has the import limit of 10 calls a minute, and fetches share the cap of 2 at a time |
 
 ## How matching works

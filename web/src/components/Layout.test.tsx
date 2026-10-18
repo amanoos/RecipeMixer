@@ -80,7 +80,7 @@ describe('Layout log out', () => {
   function renderWithAuth(authRequired: boolean, logout: () => Promise<void>) {
     stubFetch({ 'GET /api/health': () => apiResponse({ status: 'ok', schemaVersion: 5 }) });
     return render(
-      <AuthContext.Provider value={{ authRequired, features: { mealdb: false }, logout }}>
+      <AuthContext.Provider value={{ authRequired, features: { mealdb: false, imageSearch: false }, logout }}>
         <MemoryRouter initialEntries={['/']}>
           <Routes>
             <Route element={<Layout />}>

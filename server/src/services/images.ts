@@ -60,7 +60,7 @@ const CORRUPT = 'Unsupported or corrupt image';
  */
 export async function processImage(
   input: Buffer,
-  options: { maxInputPixels?: number } = {},
+  options: { maxInputPixels?: number; maxEdge?: number } = {},
 ): Promise<{ data: Buffer; filename: string }> {
   if (!sniffFormat(input)) {
     throw unsupportedMediaType('Only JPEG, PNG and WebP images are supported');
@@ -89,7 +89,12 @@ export async function processImage(
     try {
       return await image
         .rotate()
-        .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
+        .resize({
+          width: options.maxEdge ?? MAX_EDGE,
+          height: options.maxEdge ?? MAX_EDGE,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
         .webp({ quality: 82 })
         .toBuffer();
     } catch {

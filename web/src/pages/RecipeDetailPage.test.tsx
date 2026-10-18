@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AuthContext } from '@/lib/auth';
 import { RecipeDetailPage } from './RecipeDetailPage';
 import { apiResponse, detail, findCall, stubFetch } from '@/test-utils';
 
@@ -186,5 +187,98 @@ describe('RecipeDetailPage and titles in other scripts', () => {
     stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ title: '红烧肉' })) });
     renderAt('/recipes/1');
     expect(await screen.findByRole('heading', { level: 1, name: '红烧肉' })).toBeInTheDocument();
+  });
+});
+
+describe('RecipeDetailPage photo search', () => {
+  const photo = (n: number) => ({
+    token: `token-${n}`,
+    thumbnail: 'data:image/webp;base64,AAAA',
+    title: `Soup photo ${n}`,
+    creator: `Author ${n}`,
+    licence: 'CC BY 2.0',
+    licenceUrl: null,
+    landingUrl: `https://www.flickr.com/photos/1/${n}`,
+    provider: 'Openverse',
+  });
+
+  function renderWithFeature(imageSearch: boolean) {
+    return render(
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb: false, imageSearch }, logout: async () => undefined }}>
+        <MemoryRouter initialEntries={['/recipes/1']}>
+          <Routes>
+            <Route path="/recipes/:id" element={<RecipeDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+  }
+
+  it('offers no photo search unless the server has it on', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail()) });
+    renderWithFeature(false);
+    await screen.findByRole('heading', { level: 1, name: 'Tomato soup' });
+    expect(screen.queryByRole('button', { name: /Find a photo|Change photo/ })).not.toBeInTheDocument();
+  });
+
+  it('says "Find a photo" for a recipe without one and "Change photo" for one with a photo', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail()) });
+    const first = renderWithFeature(true);
+    expect(await screen.findByRole('button', { name: 'Find a photo' })).toBeInTheDocument();
+    first.unmount();
+
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ imageUrl: '/api/images/a.webp' })) });
+    renderWithFeature(true);
+    expect(await screen.findByRole('button', { name: 'Change photo' })).toBeInTheDocument();
+  });
+
+  it('searches for the title, saves the chosen photo and shows it with its credit', async () => {
+    const user = userEvent.setup();
+    const credit = { text: 'Photo: "Soup photo 1" by Author 1, CC BY 2.0, via Openverse', url: 'https://www.flickr.com/photos/1/1' };
+    const mock = stubFetch({
+      'GET /api/recipes/1': () => apiResponse(detail()),
+      'GET /api/image-search?q=Tomato+soup': () => apiResponse({ items: [photo(1), photo(2)] }),
+      'POST /api/recipes/1/image/from-search': () =>
+        apiResponse(detail({ imageUrl: '/api/images/found.webp', imageCredit: credit })),
+    });
+    renderWithFeature(true);
+
+    await user.click(await screen.findByRole('button', { name: 'Find a photo' }));
+    await user.click(await screen.findByRole('button', { name: 'Use the photo Soup photo 1' }));
+
+    expect(await screen.findByAltText('Photo of Tomato soup')).toHaveAttribute('src', '/api/images/found.webp');
+    expect(screen.getByText(/Photo: "Soup photo 1" by Author 1/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Photo page' })).toHaveAttribute('href', 'https://www.flickr.com/photos/1/1');
+    expect(JSON.parse((findCall(mock, 'POST /api/recipes/1/image/from-search')?.[1] as RequestInit).body as string)).toEqual({ token: 'token-1' });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps the dialog open when saving the choice fails', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/recipes/1': () => apiResponse(detail()),
+      'GET /api/image-search?q=Tomato+soup': () => apiResponse({ items: [photo(1)] }),
+      'POST /api/recipes/1/image/from-search': () => apiResponse({ error: 'That photo choice is not valid any more. Search again.' }, 400),
+    });
+    renderWithFeature(true);
+
+    await user.click(await screen.findByRole('button', { name: 'Find a photo' }));
+    await user.click(await screen.findByRole('button', { name: 'Use the photo Soup photo 1' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Search again');
+    expect(screen.getByRole('button', { name: 'Use the photo Soup photo 1' })).toBeEnabled();
+  });
+
+  it('shows a credit without a link when its link is not https', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ imageUrl: '/api/images/a.webp', imageCredit: { text: 'Photo by X', url: 'javascript:alert(1)' } })) });
+    renderWithFeature(false);
+    expect(await screen.findByText('Photo by X')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Photo page' })).not.toBeInTheDocument();
+  });
+
+  it('shows no caption for a photo without a credit', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ imageUrl: '/api/images/a.webp' })) });
+    renderWithFeature(false);
+    await screen.findByAltText('Photo of Tomato soup');
+    expect(screen.queryByText(/^Photo:/)).not.toBeInTheDocument();
   });
 });

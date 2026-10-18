@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AuthContext } from '@/lib/auth';
 import { RecipeFormPage } from './RecipeFormPage';
 import { apiResponse, detail, findCall, pngFile, stubFetch } from '@/test-utils';
 
@@ -168,5 +169,121 @@ describe('editing a recipe', () => {
     stubFetch({ 'GET /api/recipes/9': () => apiResponse({ error: 'Recipe not found' }, 404) });
     renderForm('/recipes/9/edit');
     expect(await screen.findByRole('heading', { name: 'Recipe not found' })).toBeInTheDocument();
+  });
+});
+
+describe('photo search on the form', () => {
+  const photo = {
+    token: 'token-1',
+    thumbnail: 'data:image/webp;base64,AAAA',
+    title: 'Pasta photo',
+    creator: 'Jane',
+    licence: 'CC BY 2.0',
+    licenceUrl: null,
+    landingUrl: null,
+    provider: 'Wikimedia Commons',
+  };
+
+  function renderWithSearch(path: string) {
+    return render(
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb: false, imageSearch: true }, logout: async () => undefined }}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/recipes/new" element={<RecipeFormPage />} />
+            <Route path="/recipes/:id" element={<p>DETAIL PAGE</p>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+  }
+
+  async function pickPhoto(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText('Title'), 'Pasta');
+    await user.click(screen.getByRole('button', { name: 'Find a photo for this title' }));
+    await user.click(await screen.findByRole('button', { name: 'Use the photo Pasta photo' }));
+  }
+
+  it('offers no search when the server has it off', () => {
+    stubFetch({});
+    renderForm('/recipes/new');
+    expect(screen.queryByRole('button', { name: 'Find a photo for this title' })).not.toBeInTheDocument();
+  });
+
+  it('keeps the button off until there is a title', async () => {
+    const user = userEvent.setup();
+    stubFetch({});
+    renderWithSearch('/recipes/new');
+    const button = screen.getByRole('button', { name: 'Find a photo for this title' });
+    expect(button).toBeDisabled();
+    await user.type(screen.getByLabelText('Title'), 'Pasta');
+    expect(button).toBeEnabled();
+  });
+
+  it('holds the chosen photo, and attaches it once the recipe is saved', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/image-search?q=Pasta': () => apiResponse({ items: [photo] }),
+      'POST /api/recipes': () => apiResponse(detail({ id: 7 }), 201),
+      'POST /api/recipes/7/image/from-search': () => apiResponse(detail({ id: 7, imageUrl: '/api/images/a.webp' })),
+    });
+    renderWithSearch('/recipes/new');
+    await pickPhoto(user);
+
+    expect(await screen.findByText(/Photo found: Pasta photo/)).toBeInTheDocument();
+    expect(findCall(mock, 'POST /api/recipes/7/image/from-search')).toBeUndefined();
+
+    await user.click(saveButton());
+    expect(await screen.findByText('DETAIL PAGE')).toBeInTheDocument();
+    expect(bodyOf(findCall(mock, 'POST /api/recipes/7/image/from-search'))).toEqual({ token: 'token-1' });
+  });
+
+  it('forgets the chosen photo when Remove is pressed', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/image-search?q=Pasta': () => apiResponse({ items: [photo] }),
+      'POST /api/recipes': () => apiResponse(detail({ id: 7 }), 201),
+    });
+    renderWithSearch('/recipes/new');
+    await pickPhoto(user);
+    await user.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(screen.queryByText(/Photo found/)).not.toBeInTheDocument();
+
+    await user.click(saveButton());
+    expect(await screen.findByText('DETAIL PAGE')).toBeInTheDocument();
+    expect(findCall(mock, 'POST /api/recipes/7/image/from-search')).toBeUndefined();
+  });
+
+  it('prefers a file chosen from the computer over a found photo', async () => {
+    const user = userEvent.setup();
+    const mock = stubFetch({
+      'GET /api/image-search?q=Pasta': () => apiResponse({ items: [photo] }),
+      'POST /api/recipes': () => apiResponse(detail({ id: 7 }), 201),
+      'PUT /api/recipes/7/image': () => apiResponse(detail({ id: 7, imageUrl: '/api/images/a.webp' })),
+    });
+    renderWithSearch('/recipes/new');
+    await pickPhoto(user);
+    await user.upload(screen.getByLabelText('Image'), pngFile('mine.png'));
+
+    expect(screen.queryByText(/Photo found/)).not.toBeInTheDocument();
+    await user.click(saveButton());
+    expect(await screen.findByText('DETAIL PAGE')).toBeInTheDocument();
+    expect(findCall(mock, 'PUT /api/recipes/7/image')).toBeDefined();
+    expect(findCall(mock, 'POST /api/recipes/7/image/from-search')).toBeUndefined();
+  });
+
+  it('says the recipe was saved but the photo was not, when the choice has expired', async () => {
+    const user = userEvent.setup();
+    stubFetch({
+      'GET /api/image-search?q=Pasta': () => apiResponse({ items: [photo] }),
+      'POST /api/recipes': () => apiResponse(detail({ id: 7 }), 201),
+      'POST /api/recipes/7/image/from-search': () => apiResponse({ error: 'That photo choice is not valid any more. Search again.' }, 400),
+    });
+    renderWithSearch('/recipes/new');
+    await pickPhoto(user);
+    await user.click(saveButton());
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The recipe was saved, but the image could not be saved');
+    // an expired choice is not offered again, so saving a second time does not repeat the failure
+    expect(screen.queryByText(/Photo found/)).not.toBeInTheDocument();
   });
 });

@@ -8,11 +8,18 @@ export interface RecipeSummary {
   updatedAt: string;
 }
 
+/** Who made the recipe's photo and under what licence (for photos found by the image search). */
+export interface ImageCredit {
+  text: string;
+  url: string | null;
+}
+
 export interface RecipeDetail extends RecipeSummary {
   description: string | null;
   sourceUrl: string | null;
   ingredients: string[];
   steps: string[];
+  imageCredit: ImageCredit | null;
 }
 
 export interface RecipeInput {
@@ -72,6 +79,18 @@ export interface RecipeDraft {
   description: string | null;
   ingredients: string[];
   steps: string[];
+}
+
+/** One photo offered by the photo search. `thumbnail` is a small inline picture; `token` is what chooses it. */
+export interface PhotoChoice {
+  token: string;
+  thumbnail: string;
+  title: string;
+  creator: string | null;
+  licence: string;
+  licenceUrl: string | null;
+  landingUrl: string | null;
+  provider: string;
 }
 
 export interface MealSearchResult {

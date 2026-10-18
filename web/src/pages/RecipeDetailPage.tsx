@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { ImageOff, Pencil, Trash2 } from 'lucide-react';
+import { ImageOff, ImagePlus, Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { PhotoSearchDialog } from '@/components/PhotoSearchDialog';
 import { StarRating } from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ApiError, deleteRecipe, getRecipe, setRating } from '@/lib/api';
+import { ApiError, choosePhoto, deleteRecipe, getRecipe, setRating } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { displayTitle } from '@/lib/display-title';
 import type { RecipeDetail } from '@/lib/types';
 import { useDocumentTitle } from '@/lib/use-document-title';
@@ -24,6 +26,8 @@ export function RecipeDetailPage() {
   const [state, setState] = useState<LoadState>('loading');
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [findingPhoto, setFindingPhoto] = useState(false);
+  const { features } = useAuth();
   const [ratingError, setRatingError] = useState<string | null>(null);
   useDocumentTitle(recipe ? displayTitle(recipe.title) : (state === 'missing' ? 'Recipe not found' : 'Recipe'));
 
@@ -108,6 +112,7 @@ export function RecipeDetailPage() {
   return (
     <article className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-2">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
@@ -122,6 +127,20 @@ export function RecipeDetailPage() {
             <ImageOff aria-hidden="true" className="size-10" />
           </div>
         )}
+        {recipe.imageCredit && (
+          <p className="text-xs text-muted-foreground">
+            {recipe.imageCredit.text}
+            {recipe.imageCredit.url?.startsWith('https://') && (
+              <>
+                {' '}
+                <a href={recipe.imageCredit.url} target="_blank" rel="noopener noreferrer" className="underline">
+                  Photo page
+                </a>
+              </>
+            )}
+          </p>
+        )}
+        </div>
 
         <div className="space-y-4">
           <h1 className="text-2xl font-semibold tracking-tight">{displayTitle(recipe.title)}</h1>
@@ -155,16 +174,33 @@ export function RecipeDetailPage() {
               )}
             </p>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link to={`/recipes/${recipe.id}/edit`} className={buttonVariants({ variant: 'outline' })}>
               <Pencil aria-hidden="true" />
               Edit
             </Link>
+            {features.imageSearch && (
+              <Button variant="outline" onClick={() => setFindingPhoto(true)}>
+                <ImagePlus aria-hidden="true" />
+                {recipe.imageUrl ? 'Change photo' : 'Find a photo'}
+              </Button>
+            )}
             <Button variant="destructive" onClick={() => setConfirming(true)}>
               <Trash2 aria-hidden="true" />
               Delete
             </Button>
           </div>
+          {findingPhoto && (
+            <PhotoSearchDialog
+              initialQuery={recipe.title}
+              onClose={() => setFindingPhoto(false)}
+              onChoose={async (choice) => {
+                const updated = await choosePhoto(recipe.id, choice.token);
+                setRecipe(updated);
+                setFindingPhoto(false);
+              }}
+            />
+          )}
           {confirming && (
             <ConfirmDialog
               title="Delete this recipe?"

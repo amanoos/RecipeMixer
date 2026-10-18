@@ -134,7 +134,7 @@ describe('ImportPage', () => {
 describe('ImportPage and TheMealDB', () => {
   function renderWithFeature(mealdb: boolean) {
     return render(
-      <AuthContext.Provider value={{ authRequired: false, features: { mealdb }, logout: async () => undefined }}>
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb, imageSearch: false }, logout: async () => undefined }}>
         <MemoryRouter initialEntries={['/import']}>
           <Routes>
             <Route path="/import" element={<ImportPage />} />
@@ -174,7 +174,7 @@ describe('ImportPage and TheMealDB', () => {
 describe('ImportPage and TheMealDB', () => {
   function renderWithFeature(mealdb: boolean) {
     return render(
-      <AuthContext.Provider value={{ authRequired: false, features: { mealdb }, logout: async () => undefined }}>
+      <AuthContext.Provider value={{ authRequired: false, features: { mealdb, imageSearch: false }, logout: async () => undefined }}>
         <MemoryRouter initialEntries={['/import']}>
           <Routes>
             <Route path="/import" element={<ImportPage />} />

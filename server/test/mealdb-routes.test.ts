@@ -68,7 +68,7 @@ describe('when TheMealDB is switched off', () => {
 
   it('reports the feature as off', async () => {
     await start(fakeFetcher(async () => ({})), { mealdbEnabled: false });
-    expect((await get('/api/session')).json().features).toEqual({ mealdb: false });
+    expect((await get('/api/session')).json().features).toEqual({ mealdb: false, imageSearch: true });
   });
 });
 
@@ -92,7 +92,7 @@ describe('GET /api/mealdb/search', () => {
 
   it('reports the feature as on', async () => {
     await start(fakeFetcher(async () => ({})));
-    expect((await get('/api/session')).json().features).toEqual({ mealdb: true });
+    expect((await get('/api/session')).json().features).toEqual({ mealdb: true, imageSearch: true });
   });
 
   it('gives an empty list when nothing matches', async () => {

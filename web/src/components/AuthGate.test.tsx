@@ -223,3 +223,29 @@ describe('AuthGate and optional features', () => {
     expect(await screen.findByText('TheMealDB: false')).toBeInTheDocument();
   });
 });
+
+describe('AuthGate and the photo search flag', () => {
+  function PhotoFlag() {
+    const { features } = useAuth();
+    return <p>photo search: {String(features.imageSearch)}</p>;
+  }
+
+  const renderFlag = () =>
+    render(
+      <AuthGate>
+        <PhotoFlag />
+      </AuthGate>,
+    );
+
+  it('passes on whether the server has the photo search on', async () => {
+    stubFetch({ 'GET /api/session': () => apiResponse({ authRequired: false, authenticated: true, features: { mealdb: false, imageSearch: true } }) });
+    renderFlag();
+    expect(await screen.findByText('photo search: true')).toBeInTheDocument();
+  });
+
+  it('treats a server that does not say as off', async () => {
+    stubFetch({ 'GET /api/session': () => apiResponse({ authRequired: false, authenticated: true, features: { mealdb: false } }) });
+    renderFlag();
+    expect(await screen.findByText('photo search: false')).toBeInTheDocument();
+  });
+});

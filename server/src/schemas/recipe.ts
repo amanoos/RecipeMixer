@@ -83,11 +83,19 @@ export interface RecipeSummary {
   updatedAt: string;
 }
 
+/** Who made the recipe's photo and under what licence, for photos found by the image search. */
+export interface ImageCredit {
+  text: string;
+  /** An https link to the photo's page, or null. */
+  url: string | null;
+}
+
 export interface RecipeDetail extends RecipeSummary {
   description: string | null;
   sourceUrl: string | null;
   ingredients: string[];
   steps: string[];
+  imageCredit: ImageCredit | null;
 }
 
 /** Validates untrusted input; the thrown message names the field but never echoes the value. */

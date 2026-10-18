@@ -22,6 +22,8 @@ export function testConfig(overrides: Partial<Config> = {}): Config {
     cookieSecure: 'auto',
     allowedHosts: [],
     urlImportEnabled: true,
+    imageSearchEnabled: true,
+    imageSearchAllowNonCommercial: false,
     mealdbEnabled: false,
     mealdbApiKey: '1',
     isProduction: false,

@@ -48,18 +48,18 @@ describe('who am I', () => {
     await start();
     const res = await get('/api/session');
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ authRequired: true, authenticated: false, features: { mealdb: false } });
+    expect(res.json()).toEqual({ authRequired: true, authenticated: false, features: { mealdb: false, imageSearch: true } });
   });
 
   it('says this caller is logged in after login', async () => {
     await start();
     const cookie = await loggedIn();
-    expect((await get('/api/session', cookie)).json()).toEqual({ authRequired: true, authenticated: true, features: { mealdb: false } });
+    expect((await get('/api/session', cookie)).json()).toEqual({ authRequired: true, authenticated: true, features: { mealdb: false, imageSearch: true } });
   });
 
   it('says no password is needed when none is set', async () => {
     await start({ appPassword: null });
-    expect((await get('/api/session')).json()).toEqual({ authRequired: false, authenticated: true, features: { mealdb: false } });
+    expect((await get('/api/session')).json()).toEqual({ authRequired: false, authenticated: true, features: { mealdb: false, imageSearch: true } });
     expect((await login()).statusCode).toBe(204);
   });
 });
@@ -399,11 +399,11 @@ describe('health', () => {
 
   it('gives the schema version to a logged-in caller, and to anyone when no password is set', async () => {
     await start();
-    expect((await get('/api/health', await loggedIn())).json()).toEqual({ status: 'ok', schemaVersion: 5 });
+    expect((await get('/api/health', await loggedIn())).json()).toEqual({ status: 'ok', schemaVersion: 6 });
 
     await app.close();
     await start({ appPassword: null });
-    expect((await get('/api/health')).json()).toEqual({ status: 'ok', schemaVersion: 5 });
+    expect((await get('/api/health')).json()).toEqual({ status: 'ok', schemaVersion: 6 });
   });
 });
 

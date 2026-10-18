@@ -10,6 +10,8 @@ interface RecipeRow {
   description: string | null;
   source_url: string | null;
   image_path: string | null;
+  image_credit: string | null;
+  image_credit_url: string | null;
   rating: number | null;
   created_at: string;
   updated_at: string;
@@ -98,6 +100,7 @@ export function getRecipe(db: Db, id: number): RecipeDetail | undefined {
     sourceUrl: row.source_url,
     ingredients: ingredients.map((item) => item.raw_text),
     steps: steps.map((item) => item.text),
+    imageCredit: row.image_credit ? { text: row.image_credit, url: row.image_credit_url } : null,
   };
 }
 
@@ -180,17 +183,24 @@ export function deleteRecipe(db: Db, id: number): { deleted: boolean; imagePath:
   })();
 }
 
+/**
+ * Sets or clears the recipe's photo. The credit is replaced together with it, so a photo without a credit (an
+ * upload, an import) never keeps the credit of the photo before it.
+ */
 export function setRecipeImage(
   db: Db,
   id: number,
   filename: string | null,
+  credit: { text: string; url: string | null } | null = null,
 ): { updated: boolean; previous: string | null } {
   return db.transaction(() => {
     const row = db.prepare('SELECT image_path FROM recipe WHERE id = ?').get(id) as
       | { image_path: string | null }
       | undefined;
     if (!row) return { updated: false, previous: null };
-    db.prepare("UPDATE recipe SET image_path = ?, updated_at = datetime('now') WHERE id = ?").run(filename, id);
+    db.prepare(
+      "UPDATE recipe SET image_path = ?, image_credit = ?, image_credit_url = ?, updated_at = datetime('now') WHERE id = ?",
+    ).run(filename, filename ? (credit?.text ?? null) : null, filename ? (credit?.url ?? null) : null, id);
     return { updated: true, previous: row.image_path };
   })();
 }

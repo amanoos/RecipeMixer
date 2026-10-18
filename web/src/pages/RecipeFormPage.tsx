@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ImagePicker } from '@/components/ImagePicker';
+import { PhotoSearchDialog } from '@/components/PhotoSearchDialog';
 import { StarRating } from '@/components/StarRating';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   ApiError,
+  choosePhoto,
   createRecipe,
   deleteImage,
   getRecipe,
@@ -15,8 +17,9 @@ import {
   updateRecipe,
   uploadImage,
 } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { hostOf, readImportPreview } from '@/lib/import-preview';
-import type { RecipeInput } from '@/lib/types';
+import type { PhotoChoice, RecipeInput } from '@/lib/types';
 import { useDocumentTitle } from '@/lib/use-document-title';
 
 /** One entry per line; blank lines are dropped. */
@@ -59,6 +62,10 @@ export function RecipeFormPage() {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { features } = useAuth();
+  // A photo picked from the photo search is attached when the recipe is saved, like an uploaded file.
+  const [foundPhoto, setFoundPhoto] = useState<PhotoChoice | null>(null);
+  const [findingPhoto, setFindingPhoto] = useState(false);
 
   useEffect(() => {
     if (editId === null) return;
@@ -120,6 +127,9 @@ export function RecipeFormPage() {
     try {
       if (imageFile) {
         await uploadImage(recipeId, imageFile);
+      } else if (foundPhoto) {
+        await choosePhoto(recipeId, foundPhoto.token);
+        setFoundPhoto(null);
       } else if (removeImage && existingImageUrl) {
         await deleteImage(recipeId);
       } else if (imported?.imageUrl && downloadPhoto && !photoDownloaded) {
@@ -128,6 +138,8 @@ export function RecipeFormPage() {
       }
     } catch (err) {
       const reason = err instanceof ApiError ? err.message : 'the server could not be reached';
+      // A found photo's choice only lasts half an hour; once it has failed it is no use trying it again.
+      if (!imageFile && foundPhoto) setFoundPhoto(null);
       setFormError(`The recipe was saved, but the image could not be saved: ${reason}`);
       setSaving(false);
       return;
@@ -267,10 +279,51 @@ export function RecipeFormPage() {
       <ImagePicker
         existingUrl={existingImageUrl}
         file={imageFile}
-        onFileChange={setImageFile}
+        onFileChange={(file) => {
+          setImageFile(file);
+          // A file chosen from the computer replaces a photo found by the search.
+          if (file) setFoundPhoto(null);
+        }}
         removeExisting={removeImage}
         onRemoveExistingChange={setRemoveImage}
       />
+
+      {features.imageSearch && (
+        <div className="space-y-2">
+          {foundPhoto && imageFile === null && (
+            <div className="flex items-center gap-3 rounded-lg border p-2">
+              <img src={foundPhoto.thumbnail} alt="" width={96} height={72} className="aspect-[4/3] w-24 rounded-md object-cover" />
+              <p className="flex-1 text-sm">
+                Photo found: {foundPhoto.title}
+                <span className="block text-xs text-muted-foreground">
+                  {[foundPhoto.creator ? `by ${foundPhoto.creator}` : null, foundPhoto.licence].filter(Boolean).join(' · ')}. It is
+                  saved when you save the recipe.
+                </span>
+              </p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setFoundPhoto(null)}>
+                Remove
+              </Button>
+            </div>
+          )}
+          <Button type="button" variant="outline" disabled={title.trim().length < 2} onClick={() => setFindingPhoto(true)}>
+            Find a photo for this title
+          </Button>
+        </div>
+      )}
+
+      {findingPhoto && (
+        <PhotoSearchDialog
+          initialQuery={title.trim()}
+          onClose={() => setFindingPhoto(false)}
+          onChoose={(choice) => {
+            setFoundPhoto(choice);
+            // A photo picked here replaces one chosen from the computer, and keeps an existing photo from being removed.
+            setImageFile(null);
+            setRemoveImage(false);
+            setFindingPhoto(false);
+          }}
+        />
+      )}
 
       {formError && (
         <p role="alert" className="text-sm text-destructive">
