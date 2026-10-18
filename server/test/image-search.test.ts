@@ -405,7 +405,8 @@ describe('review fixes', () => {
   });
 
   it('strips invisible characters that can reorder or hide a credit', () => {
-    const creator = `Jane‮Evil​⁦Doe\u0085﻿`;
+    const parts: (string | number)[] = ['Jane', 0x202e, 'Evil', 0x200b, 0x2066, 'Doe', 0x85, 0xfeff];
+    const creator = parts.map((part) => (typeof part === 'number' ? String.fromCodePoint(part) : part)).join('');
     const [item] = parseOpenverse(openverse(openverseItem({ creator })), STRICT);
     expect(item!.creator).toBe('JaneEvilDoe');
   });
