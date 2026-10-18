@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, deleteRecipe, getRecipe, setRating } from '@/lib/api';
+import { displayTitle } from '@/lib/display-title';
 import type { RecipeDetail } from '@/lib/types';
 import { useDocumentTitle } from '@/lib/use-document-title';
 
@@ -24,7 +25,7 @@ export function RecipeDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [ratingError, setRatingError] = useState<string | null>(null);
-  useDocumentTitle(recipe?.title ?? (state === 'missing' ? 'Recipe not found' : 'Recipe'));
+  useDocumentTitle(recipe ? displayTitle(recipe.title) : (state === 'missing' ? 'Recipe not found' : 'Recipe'));
 
   useEffect(() => {
     if (!Number.isInteger(recipeId) || recipeId < 1) {
@@ -110,7 +111,7 @@ export function RecipeDetailPage() {
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
-            alt={`Photo of ${recipe.title}`}
+            alt={`Photo of ${displayTitle(recipe.title)}`}
             width={800}
             height={600}
             fetchPriority="high"
@@ -123,7 +124,7 @@ export function RecipeDetailPage() {
         )}
 
         <div className="space-y-4">
-          <h1 className="text-2xl font-semibold tracking-tight">{recipe.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{displayTitle(recipe.title)}</h1>
           <div className="flex flex-wrap items-center gap-3">
             {recipe.cuisine && <Badge variant="secondary">{recipe.cuisine}</Badge>}
             <span className="flex items-center gap-2">

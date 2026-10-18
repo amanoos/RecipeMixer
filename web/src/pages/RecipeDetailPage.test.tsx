@@ -167,3 +167,24 @@ describe('RecipeDetailPage', () => {
     expect(screen.queryByText('HOME PAGE')).not.toBeInTheDocument();
   });
 });
+
+describe('RecipeDetailPage and titles in other scripts', () => {
+  const TITLE = 'Braised Pork Belly (Hong Shao Rou/红烧肉), an Easy Version';
+  const SHOWN = 'Braised Pork Belly (Hong Shao Rou), an Easy Version';
+
+  it('shows the title without the other-script text in the heading, the tab title and the photo description', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ title: TITLE, imageUrl: '/api/images/a.webp' })) });
+    renderAt('/recipes/1');
+
+    expect(await screen.findByRole('heading', { level: 1, name: SHOWN })).toBeInTheDocument();
+    expect(document.title).toBe(`${SHOWN} - RecipeMixer`);
+    expect(screen.getByAltText(`Photo of ${SHOWN}`)).toBeInTheDocument();
+    expect(screen.queryByText(/红烧肉/)).not.toBeInTheDocument();
+  });
+
+  it('still shows a title that is entirely in another script', async () => {
+    stubFetch({ 'GET /api/recipes/1': () => apiResponse(detail({ title: '红烧肉' })) });
+    renderAt('/recipes/1');
+    expect(await screen.findByRole('heading', { level: 1, name: '红烧肉' })).toBeInTheDocument();
+  });
+});
