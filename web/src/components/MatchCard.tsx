@@ -4,6 +4,7 @@ import { CardImage, type ImagePriority } from '@/components/CardImage';
 import { StarRating } from '@/components/StarRating';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { displayTitle } from '@/lib/display-title';
 import type { MatchItem } from '@/lib/types';
 
 const MAX_MISSING_SHOWN = 5;
@@ -23,7 +24,7 @@ export function MatchCard({ item, priority = 'lazy' }: { item: MatchItem; priori
       <Card className="h-full overflow-hidden transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md">
         <CardImage src={recipe.imageUrl} priority={priority} seed={recipe.title} />
         <CardContent className="flex flex-1 flex-col gap-2 pt-4">
-          <h2 className="line-clamp-2 min-h-[2lh] font-medium">{recipe.title}</h2>
+          <h2 className="line-clamp-2 min-h-[2lh] font-medium">{displayTitle(recipe.title)}</h2>
           <div className="flex items-center justify-between gap-2">
             <Badge variant={complete ? 'default' : 'secondary'}>
               {complete && <Check aria-hidden="true" />}

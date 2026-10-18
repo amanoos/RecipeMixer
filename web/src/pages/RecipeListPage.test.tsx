@@ -135,3 +135,19 @@ describe('RecipeListPage starter recipes', () => {
     expect(screen.queryByRole('button', { name: 'Load starter recipes' })).not.toBeInTheDocument();
   });
 });
+
+describe('RecipeListPage and titles in other scripts', () => {
+  it('shows card titles without the other-script text, and leaves the saved title alone', async () => {
+    const title = 'Braised Pork Belly (Hong Shao Rou/红烧肉), an Easy Version';
+    stubFetch({
+      'GET /api/recipes?limit=24&offset=0': () => apiResponse({ items: [summary({ id: 1, title })], total: 1 }),
+      'GET /api/cuisines': () => apiResponse({ items: [] }),
+    });
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Braised Pork Belly (Hong Shao Rou), an Easy Version' })).toBeInTheDocument();
+    expect(screen.queryByText(/红烧肉/)).not.toBeInTheDocument();
+    // the link still goes to the recipe, whose saved title is unchanged
+    expect(screen.getByRole('link', { name: /Braised Pork Belly/ })).toHaveAttribute('href', '/recipes/1');
+  });
+});
