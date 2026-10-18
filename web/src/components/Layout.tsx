@@ -81,7 +81,7 @@ export function Layout() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3">
           <Link
             to="/"
-            className="rm-wobble font-display mr-auto inline-flex items-center gap-2 text-xl font-semibold tracking-tight pointer-coarse:min-h-11"
+            className="rm-wobble rm-wordmark mr-auto inline-flex items-center gap-2 pointer-coarse:min-h-11"
           >
             <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <ChefHat aria-hidden="true" className="size-5" />

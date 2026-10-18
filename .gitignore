@@ -40,3 +40,7 @@ deploy/secrets/
 
 # local compose override (home-network access); holds no secrets but is specific to this machine
 docker-compose.override.yml
+
+# personal-use fonts kept on this machine only (see docs/CUSTOM-FONTS.md); never commit them
+web/src/local-fonts.css
+web/src/assets/local-fonts/
