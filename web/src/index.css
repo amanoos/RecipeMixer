@@ -7,9 +7,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: 'Luthon Southard Serif', 'Fredoka Variable', var(--font-sans);
+    --font-heading: 'Luthon Southard Serif', 'Fredoka Variable', var(--font-cjk), sans-serif;
     --font-script: 'Luthon Southard Script', var(--font-heading);
-    --font-sans: 'Luthon Southard Serif', 'Geist Variable', sans-serif;
+    --font-sans: 'Luthon Southard Serif', 'Geist Variable', var(--font-cjk), sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -51,6 +51,9 @@
 }
 
 :root {
+    /* Chinese, Japanese and Korean text is not in our fonts. Prefer a light serif system font for it over the
+       browser's heavy default sans, so it sits better beside the script and serif. Missing names are skipped. */
+    --font-cjk: 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', 'Yu Mincho', 'Batang';
     --background: oklch(0.975 0.02 85);
     --foreground: oklch(0.26 0.04 50);
     --card: oklch(0.995 0.008 85);

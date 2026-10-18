@@ -38,4 +38,8 @@ Luthon Southard (Lemonthe, 2021) is a **demo font for personal use only**. Its R
 
 Using it in your own private copy of RecipeMixer is personal use. If you ever run RecipeMixer as a business or share a build that contains the font files (including a Docker image you publish), you would need a commercial licence from the author first.
 
+## Chinese, Japanese and Korean titles
+
+Neither Luthon Southard nor the bundled fonts contain those characters, so the browser picks another font for them. `--font-cjk` in `web/src/index.css` lists light serif system fonts to prefer (Songti SC, Noto Serif CJK SC, Source Han Serif SC, SimSun, Yu Mincho, Batang) so they sit better beside the script and serif than the browser's heavy default sans. Names that are not installed are skipped, so what you see depends on the fonts on the device: Chinese is covered by SimSun on Windows, while kana and Hangul fall back to a sans font unless a Japanese or Korean serif is installed. No font is downloaded.
+
 To use another font the same way, change the two `@font-face` names and the family names in `web/src/index.css` (`--font-sans`, `--font-heading`, `--font-script`).
