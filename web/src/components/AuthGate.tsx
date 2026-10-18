@@ -18,6 +18,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('checking');
   const [authRequired, setAuthRequired] = useState(false);
   const [mealdb, setMealdb] = useState(false);
+  const [imageSearch, setImageSearch] = useState(false);
   const [keepAppBehindLogin, setKeepAppBehindLogin] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -29,6 +30,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       .then((status) => {
         setAuthRequired(status.authRequired);
         setMealdb(status.features?.mealdb === true);
+        setImageSearch(status.features?.imageSearch === true);
         setPhase(!status.authRequired || status.authenticated ? 'ready' : 'login');
       })
       .catch(() => {
@@ -55,8 +57,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthState>(
-    () => ({ authRequired, features: { mealdb }, logout }),
-    [authRequired, mealdb, logout],
+    () => ({ authRequired, features: { mealdb, imageSearch }, logout }),
+    [authRequired, mealdb, imageSearch, logout],
   );
 
   if (phase === 'checking') {

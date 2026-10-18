@@ -201,3 +201,47 @@ describe('findRecipeIdBySourceUrl', () => {
     expect(findRecipeIdBySourceUrl(db, "x' OR '1'='1")).toBeNull();
   });
 });
+
+describe('image credit', () => {
+  const CREDIT = { text: 'Photo: "Tomato soup" by Jane Doe, CC BY 2.0', url: 'https://www.flickr.com/photos/1/2' };
+
+  it('is null for a recipe without a photo and for a plain upload', () => {
+    const id = createRecipe(db, input());
+    expect(getRecipe(db, id)?.imageCredit).toBeNull();
+    setRecipeImage(db, id, HASH_A);
+    expect(getRecipe(db, id)?.imageCredit).toBeNull();
+  });
+
+  it('is stored and returned with the photo', () => {
+    const id = createRecipe(db, input());
+    setRecipeImage(db, id, HASH_A, CREDIT);
+    expect(getRecipe(db, id)?.imageCredit).toEqual(CREDIT);
+  });
+
+  it('is stored without a link when there is none', () => {
+    const id = createRecipe(db, input());
+    setRecipeImage(db, id, HASH_A, { text: 'Photo by someone', url: null });
+    expect(getRecipe(db, id)?.imageCredit).toEqual({ text: 'Photo by someone', url: null });
+  });
+
+  it('never survives a replaced photo that has no credit of its own', () => {
+    const id = createRecipe(db, input());
+    setRecipeImage(db, id, HASH_A, CREDIT);
+    setRecipeImage(db, id, HASH_B);
+    expect(getRecipe(db, id)?.imageCredit).toBeNull();
+  });
+
+  it('is cleared when the photo is removed', () => {
+    const id = createRecipe(db, input());
+    setRecipeImage(db, id, HASH_A, CREDIT);
+    setRecipeImage(db, id, null, CREDIT);
+    expect(getRecipe(db, id)).toMatchObject({ imageUrl: null, imageCredit: null });
+  });
+
+  it('is kept when the recipe text is edited', () => {
+    const id = createRecipe(db, input());
+    setRecipeImage(db, id, HASH_A, CREDIT);
+    updateRecipe(db, id, input({ title: 'Renamed' }));
+    expect(getRecipe(db, id)?.imageCredit).toEqual(CREDIT);
+  });
+});

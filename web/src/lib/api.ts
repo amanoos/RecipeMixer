@@ -2,6 +2,7 @@ import type {
   Cuisine,
   ImportPreview,
   MealSearchResult,
+  PhotoChoice,
   IngredientSuggestion,
   MatchResult,
   RecipeDetail,
@@ -157,6 +158,18 @@ export function importImageFromUrl(id: number, url: string): Promise<RecipeDetai
   return request<RecipeDetail>(`/api/recipes/${id}/image/from-url`, jsonRequest('POST', { url }));
 }
 
+/** Looks for up to five photos for a recipe title (only when the server has the photo search on). */
+export async function searchPhotos(query: string, signal?: AbortSignal): Promise<PhotoChoice[]> {
+  const params = new URLSearchParams({ q: query });
+  const { items } = await request<{ items: PhotoChoice[] }>(`/api/image-search?${params.toString()}`, { signal });
+  return items;
+}
+
+/** Makes a found photo (chosen by its token) the photo of a saved recipe. */
+export function choosePhoto(id: number, token: string): Promise<RecipeDetail> {
+  return request<RecipeDetail>(`/api/recipes/${id}/image/from-search`, jsonRequest('POST', { token }));
+}
+
 /** Adds the bundled starter recipes that are not in the library yet. */
 export function loadStarterRecipes(): Promise<{ added: number; skipped: number }> {
   return request<{ added: number; skipped: number }>('/api/starter-recipes', { method: 'POST' });
@@ -179,7 +192,7 @@ export interface SessionStatus {
   authRequired: boolean;
   authenticated: boolean;
   /** Optional features this server has switched on. Absent on older servers. */
-  features?: { mealdb: boolean };
+  features?: { mealdb: boolean; imageSearch?: boolean };
 }
 
 export function getSession(signal?: AbortSignal): Promise<SessionStatus> {

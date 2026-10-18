@@ -18,7 +18,6 @@ const PUBLIC_API = new Set([
   'DELETE /api/session',
 ]);
 
-const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 // Over HTTPS the "__Host-" prefix makes the browser insist on Secure, path "/" and no Domain,
 // so a sibling subdomain cannot overwrite the cookie.
@@ -105,7 +104,7 @@ function requireAllowedHost(req: FastifyRequest, extraHosts: string[]): void {
   );
 }
 
-/** Refuses a state-changing request that a browser says came from another site. Scripts without these headers pass. */
+/** Refuses a request that a browser says came from another site. Scripts without these headers pass. */
 function requireSameOrigin(req: FastifyRequest): void {
   const site = req.headers['sec-fetch-site'];
   if (site !== undefined && site !== 'same-origin' && site !== 'none') {
@@ -152,6 +151,8 @@ export async function registerAuth(app: FastifyInstance, config: Config, auth: A
     if (auth.enabled && !PUBLIC_API.has(`${req.method} ${rawPathOf(url)}`) && !auth.isAuthenticated(req)) {
       throw unauthorized('Login required');
     }
-    if (UNSAFE_METHODS.has(req.method)) requireSameOrigin(req);
+    // Every API request, not only the ones that change something: a web page on another site could otherwise make
+    // the server do outgoing work (photo search, link import) just by pointing an image or a link at it.
+    requireSameOrigin(req);
   });
 }

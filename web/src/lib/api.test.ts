@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiError,
+  choosePhoto,
   createRecipe,
   deleteImage,
   deleteRecipe,
@@ -14,6 +15,7 @@ import {
   logout,
   matchRecipes,
   onUnauthorized,
+  searchPhotos,
   previewImport,
   previewMealDb,
   searchMealDb,
@@ -329,5 +331,22 @@ describe('starter recipes and TheMealDB api', () => {
     const mock = stubFetch(ok({ draft: {}, imageUrl: null, sourceUrl: 'x', existingRecipeId: null }));
     await previewMealDb('12/3');
     expect(mock.mock.calls[0]?.[0]).toBe('/api/mealdb/meals/12%2F3');
+  });
+});
+
+describe('photo search api', () => {
+  it('searches with the words encoded and returns the items', async () => {
+    const mock = stubFetch(ok({ items: [{ token: 't', title: 'x' }] }));
+    await expect(searchPhotos('a&b=c d')).resolves.toEqual([{ token: 't', title: 'x' }]);
+    expect(mock.mock.calls[0]?.[0]).toBe('/api/image-search?q=a%26b%3Dc+d');
+  });
+
+  it('chooses a photo by its token only', async () => {
+    const mock = stubFetch(ok({ id: 4, imageUrl: '/api/images/a.webp' }));
+    await expect(choosePhoto(4, 'token-1')).resolves.toMatchObject({ id: 4 });
+    const [url, init] = mock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/recipes/4/image/from-search');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({ token: 'token-1' });
   });
 });

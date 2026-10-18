@@ -20,14 +20,14 @@ afterEach(() => {
 describe('migrate', () => {
   it('applies all migrations and reports the latest version', () => {
     db = openMemoryDatabase();
-    expect(migrate(db)).toBe(5);
+    expect(migrate(db)).toBe(6);
   });
 
   it('is idempotent', () => {
     freshDb();
-    expect(migrate(db)).toBe(5);
-    expect(getSchemaVersion(db)).toBe(5);
-    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 5 });
+    expect(migrate(db)).toBe(6);
+    expect(getSchemaVersion(db)).toBe(6);
+    expect(db.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get()).toEqual({ n: 6 });
   });
 
   it('applies new migrations in order and skips applied ones', () => {

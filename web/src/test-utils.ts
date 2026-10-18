@@ -48,6 +48,7 @@ export function detail(overrides: Partial<RecipeDetail> = {}): RecipeDetail {
     sourceUrl: 'https://example.com/soup',
     ingredients: ['4 tomatoes', '1 onion'],
     steps: ['Chop everything', 'Simmer for 20 minutes'],
+    imageCredit: null,
     ...overrides,
   };
 }

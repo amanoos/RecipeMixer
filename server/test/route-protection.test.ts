@@ -26,6 +26,8 @@ const PROTECTED = [
   'GET /api/ingredients/suggest',
   'POST /api/import/preview',
   'POST /api/starter-recipes',
+  'GET /api/image-search',
+  'POST /api/recipes/:id/image/from-search',
   'GET /api/mealdb/search',
   'GET /api/mealdb/meals/:id',
   'GET /api/images/:filename',

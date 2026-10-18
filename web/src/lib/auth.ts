@@ -4,7 +4,7 @@ export interface AuthState {
   /** Whether the server asks for a password, so whether there is anything to log out of. */
   authRequired: boolean;
   /** Optional server features that are switched on. */
-  features: { mealdb: boolean };
+  features: { mealdb: boolean; imageSearch: boolean };
   /** Ends the session on the server. Rejects if that could not be done, so the user is not told they are logged out when they are not. */
   logout: () => Promise<void>;
 }
@@ -12,7 +12,7 @@ export interface AuthState {
 /** The default is "no password", which is how the app behaves when it is not wrapped in the AuthGate (as in most tests). */
 export const AuthContext = createContext<AuthState>({
   authRequired: false,
-  features: { mealdb: false },
+  features: { mealdb: false, imageSearch: false },
   logout: async () => undefined,
 });
 

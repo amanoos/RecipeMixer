@@ -29,6 +29,10 @@ export interface Config {
   allowedHosts: string[];
   /** Whether the server may fetch recipe pages and images from user-supplied URLs. */
   urlImportEnabled: boolean;
+  /** Whether a recipe's title may be sent to Wikimedia Commons and Openverse to find photos (only when asked). */
+  imageSearchEnabled: boolean;
+  /** Whether photos with a non-commercial licence are offered. Off by default; fine for personal use. */
+  imageSearchAllowNonCommercial: boolean;
   /** Whether the optional TheMealDB search is available. Off unless the owner turns it on. */
   mealdbEnabled: boolean;
   /** TheMealDB API key. The free development key is "1"; a supporter key is a secret and is never logged. */
@@ -57,6 +61,14 @@ const envSchema = z.object({
   URL_IMPORT_ENABLED: z
     .enum(['true', 'false'])
     .default('true')
+    .transform((value) => value === 'true'),
+  IMAGE_SEARCH_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
+  IMAGE_SEARCH_ALLOW_NONCOMMERCIAL: z
+    .enum(['true', 'false'])
+    .default('false')
     .transform((value) => value === 'true'),
   MEALDB_ENABLED: z
     .enum(['true', 'false'])
@@ -197,6 +209,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     cookieSecure: values.COOKIE_SECURE === 'true' ? 'always' : 'auto',
     allowedHosts: readAllowedHosts(values.ALLOWED_HOSTS),
     urlImportEnabled: values.URL_IMPORT_ENABLED,
+    imageSearchEnabled: values.IMAGE_SEARCH_ENABLED,
+    imageSearchAllowNonCommercial: values.IMAGE_SEARCH_ALLOW_NONCOMMERCIAL,
     mealdbEnabled: values.MEALDB_ENABLED,
     mealdbApiKey: values.MEALDB_API_KEY,
     isProduction: values.NODE_ENV === 'production',
